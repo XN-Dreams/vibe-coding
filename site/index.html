@@ -18,7 +18,7 @@
     <p class="sub">Built live, from an empty folder, with nothing hidden.</p>
 
     <nav class="tabs" aria-label="Sections">
-      <a class="tab" id="tab-map" href="#map" role="button">The network</a>
+      <a class="tab" id="tab-map" href="#map" role="button">The plant</a>
       <a class="tab" id="tab-schedule" href="#schedule" role="button">Schedule</a>
       <a class="tab" id="tab-glossary" href="#glossary" role="button">All terms</a>
     </nav>
@@ -29,7 +29,7 @@
       <div class="mapwrap">
         <div class="mapstage">
           <canvas id="netcanvas" role="img"
-            aria-label="The glossary drawn as a transit network. Every term is a station and every cross-reference a section of track. A list of all stations follows."></canvas>
+            aria-label="The glossary drawn as a factory. Four zones: the control room, the machine, the shop floor and quality control. Arrows show flow only where the stages are genuinely ordered. A list of every machine follows."></canvas>
           <div id="netstops" class="stops"></div>
           <div class="mapctl">
             <button type="button" id="zoomout" aria-label="Zoom out">&minus;</button>
@@ -40,8 +40,8 @@
         <aside class="mapside">
           <div id="nethud" class="hud"></div>
           <div id="netpanel" class="station-panel" hidden></div>
-          <p class="maphint">Click a station to open it. Drag to pan, scroll or pinch to zoom.
-            Follow an <b>Onward from here</b> link to trace a route.</p>
+          <p class="maphint">Click a machine to bring it online. Drag to pan, scroll or pinch to zoom.
+            Arrows show flow; zones without arrows have no fixed order.</p>
         </aside>
       </div>
     </section>

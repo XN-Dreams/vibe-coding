@@ -1,47 +1,11 @@
 [
   {
-    "key": "core",
-    "name": "Start here",
-    "tagline": "What the machine actually is, and what it is doing when it writes code for you.",
-    "sections": [
-      {
-        "title": "The machine",
-        "stops": [
-          "vibe-coding",
-          "llm",
-          "model"
-        ]
-      },
-      {
-        "title": "What you send it",
-        "stops": [
-          "prompt",
-          "token",
-          "context-window",
-          "system-prompt"
-        ]
-      },
-      {
-        "title": "What comes back",
-        "stops": [
-          "hallucination",
-          "non-determinism"
-        ]
-      },
-      {
-        "title": "When it acts on its own",
-        "stops": [
-          "agent",
-          "agentic-loop"
-        ]
-      }
-    ]
-  },
-  {
     "key": "claude-code",
-    "name": "Driving the agent",
-    "tagline": "The controls. What a session is, what it is allowed to do, and how to point it at work.",
-    "sections": [
+    "zone": "Control room",
+    "role": "control",
+    "flow": "parallel",
+    "tagline": "Where you stand and drive it. These are controls, not steps — you reach for whichever one the job needs.",
+    "bays": [
       {
         "title": "A working session",
         "stops": [
@@ -72,7 +36,7 @@
         ]
       },
       {
-        "title": "Working in parallel",
+        "title": "Running more than one",
         "stops": [
           "subagent",
           "background-task",
@@ -83,10 +47,52 @@
     ]
   },
   {
+    "key": "core",
+    "zone": "The machine",
+    "role": "machine",
+    "flow": "sequence",
+    "tagline": "What is actually doing the work. This one IS a sequence: something goes in, something comes out, and it can act on what it made.",
+    "bays": [
+      {
+        "title": "What it is",
+        "stops": [
+          "vibe-coding",
+          "llm",
+          "model"
+        ]
+      },
+      {
+        "title": "What goes in",
+        "stops": [
+          "prompt",
+          "token",
+          "context-window",
+          "system-prompt"
+        ]
+      },
+      {
+        "title": "What comes out",
+        "stops": [
+          "hallucination",
+          "non-determinism"
+        ]
+      },
+      {
+        "title": "When it acts",
+        "stops": [
+          "agent",
+          "agentic-loop"
+        ]
+      }
+    ]
+  },
+  {
     "key": "engineering",
-    "name": "The ground floor",
-    "tagline": "The vocabulary every developer assumes you already have. The longest line, and the one worth walking end to end.",
-    "sections": [
+    "zone": "The shop floor",
+    "role": "floor",
+    "flow": "sequence",
+    "tagline": "The line the work actually travels down, from your keyboard to somebody else's browser. The stages are ordered; what sits inside a stage is not.",
+    "bays": [
       {
         "title": "Where you type",
         "stops": [
@@ -140,9 +146,11 @@
   },
   {
     "key": "discipline",
-    "name": "Not breaking it",
-    "tagline": "The judgement calls. Mostly learned the expensive way, which is why they are written down here.",
-    "sections": [
+    "zone": "Quality control",
+    "role": "qc",
+    "flow": "parallel",
+    "tagline": "Not a stage at the end. These sit over the whole plant, and every one of them is a gate something else has to pass through.",
+    "bays": [
       {
         "title": "Before you build",
         "stops": [

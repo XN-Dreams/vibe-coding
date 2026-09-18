@@ -60,7 +60,7 @@ test('generated site data matches its source in data/', async () => {
   for (const [src, out] of [
     ['glossary.json', 'glossary.json'],
     ['schedule.json', 'schedule.json'],
-    ['lines.json', 'lines.json'],
+    ['plant.json', 'plant.json'],
   ]) {
     const a = JSON.parse(await readFile(new URL(`../data/${src}`, import.meta.url), 'utf8'));
     const b = JSON.parse(await readFile(new URL(out, siteDir), 'utf8'));

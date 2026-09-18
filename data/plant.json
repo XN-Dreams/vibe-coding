@@ -1,0 +1,54 @@
+[
+  {
+    "key": "claude-code",
+    "zone": "Control room",
+    "role": "control",
+    "flow": "parallel",
+    "tagline": "Where you stand and drive it. These are controls, not steps — you reach for whichever one the job needs.",
+    "bays": [
+      { "title": "A working session", "stops": ["session", "claude-md", "memory", "compaction", "checkpoint"] },
+      { "title": "Deciding before doing", "stops": ["plan-mode", "permission-mode", "allowlist"] },
+      { "title": "What it can reach", "stops": ["tool", "mcp-server", "skill", "slash-command", "hook", "settings-json"] },
+      { "title": "Running more than one", "stops": ["subagent", "background-task", "worktree", "artifact"] }
+    ]
+  },
+  {
+    "key": "core",
+    "zone": "The machine",
+    "role": "machine",
+    "flow": "sequence",
+    "tagline": "What is actually doing the work. This one IS a sequence: something goes in, something comes out, and it can act on what it made.",
+    "bays": [
+      { "title": "What it is", "stops": ["vibe-coding", "llm", "model"] },
+      { "title": "What goes in", "stops": ["prompt", "token", "context-window", "system-prompt"] },
+      { "title": "What comes out", "stops": ["hallucination", "non-determinism"] },
+      { "title": "When it acts", "stops": ["agent", "agentic-loop"] }
+    ]
+  },
+  {
+    "key": "engineering",
+    "zone": "The shop floor",
+    "role": "floor",
+    "flow": "sequence",
+    "tagline": "The line the work actually travels down, from your keyboard to somebody else's browser. The stages are ordered; what sits inside a stage is not.",
+    "bays": [
+      { "title": "Where you type", "stops": ["terminal", "cli", "package-manager", "dependency"] },
+      { "title": "Keeping your work", "stops": ["repo", "commit", "branch", "pull-request", "merge"] },
+      { "title": "Making it run", "stops": ["build", "lint", "test", "stack-trace", "localhost", "port"] },
+      { "title": "Putting it online", "stops": ["static-vs-dynamic", "deploy", "api", "endpoint", "json"] },
+      { "title": "Holding data", "stops": ["database", "schema", "environment-variable", "secret"] }
+    ]
+  },
+  {
+    "key": "discipline",
+    "zone": "Quality control",
+    "role": "qc",
+    "flow": "parallel",
+    "tagline": "Not a stage at the end. These sit over the whole plant, and every one of them is a gate something else has to pass through.",
+    "bays": [
+      { "title": "Before you build", "stops": ["spec", "mvp", "yagni", "scope-creep", "adr"] },
+      { "title": "As it grows", "stops": ["refactor", "technical-debt", "regression"] },
+      { "title": "When it is real", "stops": ["idempotency", "verification", "rollback", "blast-radius"] }
+    ]
+  }
+]

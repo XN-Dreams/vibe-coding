@@ -1,26 +1,31 @@
-import { layoutRoutes } from './route-layout.js';
+import { layoutPlant } from './plant-layout.js';
 import { visit, traceRoute, summarise, isVisited, EMPTY } from './progress.js';
 import { esc } from './escape.js';
 
 /**
- * The glossary as four routes out of one origin.
+ * The glossary as a plant.
  *
- * The earlier version was a force-directed graph, and a station's position
- * recorded only where the springs happened to stop. Here the routes are drawn
- * and the order along them is authored: further right is further through the
- * material. That is what makes it navigable rather than decorative.
+ * Two earlier designs over-claimed structure. A force graph put terms where the
+ * springs stopped. A transit line put every domain in a left-to-right order,
+ * which asserted that eighteen unrelated controls are a sequence you walk
+ * through. They are not.
+ *
+ * A zone now declares whether its bays are ordered, and arrows are drawn only
+ * where that claim is made. Grouping is always shown; flow only where it exists.
  */
 
-const LINE = {
-  core: '#F5B82E',
-  'claude-code': '#FF6A45',
-  engineering: '#35D6CE',
-  discipline: '#F473B4',
+const ZONE_COLOUR = {
+  control: '#FF6A45',
+  machine: '#F5B82E',
+  floor: '#35D6CE',
+  qc: '#F473B4',
 };
 
 const GROUND = '#0B2A2E';
+const PLATE = '#0F3439';
 const INK = '#EAF6F4';
-const MUTED = 'rgba(234, 246, 244, .58)';
+const MUTED = 'rgba(234, 246, 244, .55)';
+const HAIR = 'rgba(234, 246, 244, .16)';
 const STORAGE_KEY = 'vibe-coding:progress:v1';
 
 function loadProgress() {
@@ -40,17 +45,17 @@ function saveProgress(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    /* progress is a nicety; storage failure must never break the map */
+    /* progress is a nicety; storage failure must never break the plant */
   }
 }
 
-export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
+export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
   const ctx = canvas.getContext('2d');
   const bySlug = new Map(terms.map((t) => [t.slug, t]));
-  const lineByKey = new Map(lines.map((l) => [l.key, l]));
+  const zoneByKey = new Map(plant.map((z) => [z.key, z]));
 
   let progress = loadProgress();
-  let map = { stations: [], sections: [], interchanges: [], routes: [], origin: { x: 0, y: 0 } };
+  let model = { zones: [], bays: [], stops: [], flows: [], conduits: [], rail: { x: 0, w: 0 } };
   let hovered = null;
   let selected = null;
   let view = { scale: 1, x: 0, y: 0 };
@@ -72,29 +77,26 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const box = { width: rect.width, height: rect.height };
-    k = Math.min(1.5, Math.max(0.72, Math.sqrt((box.width * box.height) / (1200 * 760))));
-    map = layoutRoutes(lines, terms, box);
+    k = Math.min(1.45, Math.max(0.7, Math.sqrt((box.width * box.height) / (1200 * 800))));
+    model = layoutPlant(plant, terms, box);
     view = { scale: 1, x: 0, y: 0 };
     renderStops(rect);
     draw();
   }
 
   function renderStops(rect) {
-    // A stop that links to another line is an interchange, and a screen reader
-    // user needs to be told that as plainly as a sighted one sees the connector.
-    const changeHere = new Set();
-    for (const link of map.interchanges) {
-      changeHere.add(link.a.slug);
-      changeHere.add(link.b.slug);
+    const linked = new Set();
+    for (const c of model.conduits) {
+      linked.add(c.a.slug);
+      linked.add(c.b.slug);
     }
-
-    stops.innerHTML = map.stations
+    stops.innerHTML = model.stops
       .map(
         (s) => `<button type="button" class="stop" data-slug="${esc(s.slug)}"
             style="left:${(s.x / rect.width) * 100}%;top:${(s.y / rect.height) * 100}%"
-            aria-label="Stop ${s.index + 1} on the ${esc(lineByKey.get(s.line)?.name ?? s.line)} line, ${esc(
-              s.section ?? ''
-            )}: ${esc(s.term)}${changeHere.has(s.slug) ? ', interchange - connects to another line' : ''}">${esc(s.term)}</button>`
+            aria-label="${esc(s.term)} — ${esc(s.zoneName)}, ${esc(s.bay)}${
+              linked.has(s.slug) ? ', connects to another zone' : ''
+            }">${esc(s.term)}</button>`
       )
       .join('');
   }
@@ -104,6 +106,39 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
   const P = (p) => ({ x: p.x * view.scale + view.x, y: p.y * view.scale + view.y });
   const S = (n) => n * k * Math.min(view.scale, 1.6);
 
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function arrow(from, to, colour, width, dashed) {
+    const a = P(from);
+    const b = P(to);
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = width;
+    ctx.setLineDash(dashed ? [S(4), S(4)] : []);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const head = S(5);
+    ctx.fillStyle = colour;
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y);
+    ctx.lineTo(b.x - head * Math.cos(ang - 0.5), b.y - head * Math.sin(ang - 0.5));
+    ctx.lineTo(b.x - head * Math.cos(ang + 0.5), b.y - head * Math.sin(ang + 0.5));
+    ctx.closePath();
+    ctx.fill();
+  }
+
   function draw() {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
@@ -111,142 +146,157 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     const focus = hovered ?? selected;
-    const focusStation = focus ? map.stations.find((s) => s.slug === focus) : null;
-
+    const focusStop = focus ? model.stops.find((s) => s.slug === focus) : null;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // 1. the four routes
-    for (const route of map.routes) {
-      const dim = focusStation && focusStation.line !== route.key;
-      ctx.strokeStyle = LINE[route.key];
-      ctx.globalAlpha = dim ? 0.2 : 1;
-      ctx.lineWidth = S(5.5);
-      ctx.beginPath();
-      route.points.forEach((p, i) => {
-        const q = P(p);
-        if (i === 0) ctx.moveTo(q.x, q.y);
-        else ctx.lineTo(q.x, q.y);
-      });
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
+    // 1. zone plates
+    for (const z of model.zones) {
+      const dim = focusStop && focusStop.zone !== z.key;
+      const p = P(z);
+      ctx.globalAlpha = dim ? 0.3 : 1;
 
-    // 2. interchanges - the places one journey actually touches another
-    ctx.setLineDash([S(3), S(4)]);
-    ctx.lineWidth = S(1.4);
-    ctx.strokeStyle = 'rgba(234,246,244,.32)';
-    for (const link of map.interchanges) {
-      const lit = focus && (link.a.slug === focus || link.b.slug === focus);
-      ctx.globalAlpha = focus ? (lit ? 0.95 : 0.07) : 0.3;
-      const pa = P(link.a);
-      const pb = P(link.b);
+      ctx.fillStyle = PLATE;
+      roundRect(p.x, p.y, z.w * view.scale, z.h * view.scale, S(6));
+      ctx.fill();
+      ctx.strokeStyle = HAIR;
+      ctx.lineWidth = S(1);
+      ctx.stroke();
+
+      ctx.font = `800 ${Math.round(S(12))}px "Big Shoulders Display", Archivo, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = ZONE_COLOUR[z.role];
+      ctx.fillText(z.zone.toUpperCase(), p.x + S(9), p.y + S(7));
+
+      // A zone that is not a sequence says so, in words. Colour alone would not.
+      ctx.font = `600 ${Math.round(S(7.5))}px Archivo, system-ui, sans-serif`;
+      ctx.fillStyle = MUTED;
+      ctx.textAlign = 'right';
+      ctx.fillText(
+        z.sequential ? 'STAGES RUN LEFT TO RIGHT' : 'NO ORDER — REACH FOR WHAT YOU NEED',
+        p.x + z.w * view.scale - S(9),
+        p.y + S(9)
+      );
+      ctx.globalAlpha = 1;
+    }
+
+    // 2. bays
+    ctx.textAlign = 'left';
+    for (const b of model.bays) {
+      const dim = focusStop && focusStop.zone !== b.zone;
+      const p = P(b);
+      ctx.globalAlpha = dim ? 0.22 : 1;
+
+      const zone = model.zones.find((z) => z.key === b.zone);
+      ctx.strokeStyle = `${ZONE_COLOUR[zone.role]}55`;
+      ctx.lineWidth = S(1);
+      roundRect(p.x, p.y, b.w * view.scale, b.h * view.scale, S(4));
+      ctx.stroke();
+
+      ctx.font = `700 ${Math.round(S(8.5))}px Archivo, system-ui, sans-serif`;
+      ctx.fillStyle = ZONE_COLOUR[zone.role];
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(b.title.toUpperCase(), p.x + S(5), p.y - S(3));
+      ctx.globalAlpha = 1;
+    }
+
+    // 3. flow — stage arrows inside sequential zones, and the plant spine
+    for (const f of model.flows) {
+      if (f.kind === 'stage') {
+        const zone = model.zones.find((z) => z.key === f.zone);
+        const dim = focusStop && focusStop.zone !== f.zone;
+        ctx.globalAlpha = dim ? 0.2 : 0.9;
+        arrow(f.from, f.to, ZONE_COLOUR[zone.role], S(2));
+      } else {
+        ctx.globalAlpha = 0.75;
+        arrow(f.from, f.to, INK, S(2), true);
+        const mid = P({ x: f.from.x, y: (f.from.y + f.to.y) / 2 });
+        ctx.save();
+        ctx.translate(mid.x, mid.y);
+        ctx.rotate(-Math.PI / 2);
+        ctx.font = `700 ${Math.round(S(7.5))}px Archivo, system-ui, sans-serif`;
+        ctx.fillStyle = MUTED;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(f.label.toUpperCase(), 0, -S(4));
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // 4. conduits between zones
+    ctx.setLineDash([S(2), S(5)]);
+    ctx.lineWidth = S(1.2);
+    for (const c of model.conduits) {
+      const lit = focus && (c.a.slug === focus || c.b.slug === focus);
+      ctx.globalAlpha = focus ? (lit ? 0.9 : 0.05) : 0.18;
+      ctx.strokeStyle = lit ? INK : 'rgba(234,246,244,.5)';
+      const a = P(c.a);
+      const b = P(c.b);
       ctx.beginPath();
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pb.x, pb.y);
+      ctx.moveTo(a.x, a.y);
+      ctx.bezierCurveTo(a.x, (a.y + b.y) / 2, b.x, (a.y + b.y) / 2, b.x, b.y);
       ctx.stroke();
     }
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
 
-    // 3. section brackets - the blocks each journey is divided into
-    if (view.scale > 0.85) {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      for (const sec of map.sections) {
-        const dim = focusStation && focusStation.line !== sec.line;
-        ctx.globalAlpha = dim ? 0.15 : 0.85;
-        const a = P(sec.from);
-        const b = P(sec.to);
-        const y = sec.above ? Math.min(a.y, b.y) - S(17) : Math.max(a.y, b.y) + S(19);
-
-        ctx.strokeStyle = LINE[sec.line];
-        ctx.lineWidth = S(1.2);
-        ctx.beginPath();
-        ctx.moveTo(a.x, y);
-        ctx.lineTo(b.x, y);
-        ctx.stroke();
-
-        ctx.font = `700 ${Math.round(S(9.5))}px Archivo, system-ui, sans-serif`;
-        const text = sec.title.toUpperCase();
-        const w = ctx.measureText(text).width + S(10);
-        ctx.fillStyle = GROUND;
-        ctx.fillRect(P(sec.label).x - w / 2, y - S(7), w, S(14));
-        ctx.fillStyle = LINE[sec.line];
-        ctx.fillText(text, P(sec.label).x, y);
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    // 4. stations
-    for (const s of map.stations) {
+    // 5. the machines themselves
+    for (const s of model.stops) {
       const p = P(s);
-      const seen = isVisited(progress, s.slug);
+      const online = isVisited(progress, s.slug);
       const active = s.slug === focus;
-      const dim = focusStation && focusStation.line !== s.line && !active;
-      const isFirst = s.index === 0;
+      const dim = focusStop && focusStop.zone !== s.zone && !active;
+      const zone = model.zones.find((z) => z.key === s.zone);
+      const colour = ZONE_COLOUR[zone.role];
 
       ctx.globalAlpha = dim ? 0.2 : 1;
-      const r = S(isFirst ? 8 : 5.5);
+      const r = S(active ? 6.5 : 5);
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = seen ? LINE[s.line] : GROUND;
+      ctx.fillStyle = online ? colour : GROUND;
       ctx.fill();
-      ctx.strokeStyle = active ? '#FFFFFF' : LINE[s.line];
-      ctx.lineWidth = S(active ? 3 : 2.2);
+      ctx.strokeStyle = active ? '#FFFFFF' : colour;
+      ctx.lineWidth = S(active ? 2.6 : 1.8);
       ctx.stroke();
 
-      const label = active || seen || isFirst || view.scale > 1.45;
-      if (label && !dim) {
-        ctx.font = `600 ${Math.round(S(10.5))}px Archivo, system-ui, sans-serif`;
+      if (active || online || view.scale > 1.35) {
+        ctx.font = `600 ${Math.round(S(9))}px Archivo, system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        // Alternate above and below, so consecutive stops cannot collide.
-        const below = s.index % 2 === 0;
-        const y = below ? p.y + r + S(4) : p.y - r - S(15);
+        const y = p.y + r + S(3);
         ctx.lineWidth = S(3);
-        ctx.strokeStyle = GROUND;
+        ctx.strokeStyle = PLATE;
         ctx.strokeText(s.term, p.x, y);
-        ctx.fillStyle = active ? '#FFFFFF' : seen ? INK : MUTED;
+        ctx.fillStyle = active ? '#FFFFFF' : online ? INK : MUTED;
         ctx.fillText(s.term, p.x, y);
       }
       ctx.globalAlpha = 1;
     }
-
-    // 5. the beacon - the first question a map has to answer is "where do I start?"
-    const o = P(map.origin);
-    ctx.beginPath();
-    ctx.arc(o.x, o.y, S(12), 0, Math.PI * 2);
-    ctx.fillStyle = INK;
-    ctx.fill();
-    ctx.font = `800 ${Math.round(S(9))}px "Big Shoulders Display", Archivo, sans-serif`;
-    ctx.fillStyle = GROUND;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('START', o.x, o.y);
   }
 
   /* ----------------------------------------------------------- the HUD --- */
 
   function renderHud() {
     const s = summarise(terms, progress);
-    const rows = lines
-      .map((l) => {
-        const stat = s.lines[l.key] ?? { visited: 0, total: 0, complete: false };
+    const rows = plant
+      .map((z) => {
+        const stat = s.lines[z.key] ?? { visited: 0, total: 0, complete: false };
         const pct = stat.total ? Math.round((stat.visited / stat.total) * 100) : 0;
-        return `<button type="button" class="line${stat.complete ? ' line--done' : ''}" data-line="${esc(l.key)}">
-          <span class="line__dot" style="background:${LINE[l.key]}"></span>
-          <span class="line__name">${esc(l.name)}</span>
-          <span class="line__bar"><i style="width:${pct}%;background:${LINE[l.key]}"></i></span>
+        return `<button type="button" class="line${stat.complete ? ' line--done' : ''}" data-zone="${esc(z.key)}">
+          <span class="line__dot" style="background:${ZONE_COLOUR[z.role]}"></span>
+          <span class="line__name">${esc(z.zone)}</span>
+          <span class="line__bar"><i style="width:${pct}%;background:${ZONE_COLOUR[z.role]}"></i></span>
           <span class="line__n">${stat.visited}/${stat.total}</span>
-          <span class="line__tag">${esc(l.tagline)}</span>
+          <span class="line__tag">${esc(z.tagline)}</span>
         </button>`;
       })
       .join('');
 
-    hud.innerHTML = `<p class="hud__total"><strong>${s.visited}</strong> of ${s.total} stops
-      &middot; <strong>${s.routes}</strong> interchanges used</p>${rows}`;
+    hud.innerHTML = `<p class="hud__total"><strong>${s.visited}</strong> of ${s.total} machines online
+      &middot; <strong>${s.routes}</strong> conduits opened</p>${rows}`;
   }
 
   /* --------------------------------------------------------- the panel --- */
@@ -254,41 +304,41 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
   function open(slug, from) {
     const t = bySlug.get(slug);
     if (!t) return;
-    const station = map.stations.find((s) => s.slug === slug);
+    const stop = model.stops.find((s) => s.slug === slug);
+    const zone = zoneByKey.get(t.category);
 
     progress = from ? traceRoute(progress, from, slug) : visit(progress, slug);
     saveProgress(progress);
     selected = slug;
 
-    const line = lineByKey.get(t.category);
-    const onLine = map.stations.filter((s) => s.line === t.category).sort((a, b) => a.index - b.index);
-    const pos = station ? station.index : 0;
-    const next = onLine[pos + 1];
-    const prev = onLine[pos - 1];
-
+    const inBay = model.stops.filter((s) => s.zone === t.category && s.bay === stop?.bay);
     const related = (t.related ?? [])
       .filter((r) => bySlug.has(r))
       .map((r) => {
         const other = bySlug.get(r);
         const off = other.category !== t.category;
         return `<button type="button" class="chip${off ? ' chip--change' : ''}" data-goto="${esc(r)}" data-from="${esc(slug)}">
-            <span class="chip__dot" style="background:${LINE[other.category]}"></span>${esc(other.term)}${
-              off ? '<span class="chip__x">change here</span>' : ''
+            <span class="chip__dot" style="background:${ZONE_COLOUR[zoneByKey.get(other.category)?.role ?? 'floor']}"></span>${esc(other.term)}${
+              off ? '<span class="chip__x">other zone</span>' : ''
             }</button>`;
       })
       .join('');
 
+    const siblings = inBay
+      .filter((s) => s.slug !== slug)
+      .map((s) => `<button type="button" class="chip chip--bay" data-goto="${esc(s.slug)}">${esc(s.term)}</button>`)
+      .join('');
+
     panel.innerHTML = `<article class="station">
-      <p class="station__line" style="color:${LINE[t.category]}">${esc(line?.name ?? t.category)} &middot; stop ${pos + 1} of ${onLine.length}</p>
-      <p class="station__section">${esc(station?.section ?? '')}</p>
+      <p class="station__line" style="color:${ZONE_COLOUR[zone?.role ?? 'floor']}">${esc(zone?.zone ?? t.category)}</p>
+      <p class="station__section">${esc(stop?.bay ?? '')}${
+        zone && zone.flow === 'parallel' ? ' &middot; no fixed order' : ''
+      }</p>
       <h3 class="station__term">${esc(t.term)}</h3>
       <p class="station__short">${esc(t.short)}</p>
       <p class="station__why"><b>Why it matters.</b> ${esc(t.why)}</p>
       <p class="station__hear">${esc(t.hear_it)}</p>
-      <nav class="stepper">
-        ${prev ? `<button type="button" class="step" data-goto="${esc(prev.slug)}">&larr; ${esc(prev.term)}</button>` : '<span></span>'}
-        ${next ? `<button type="button" class="step step--next" data-goto="${esc(next.slug)}" data-from="${esc(slug)}">${esc(next.term)} &rarr;</button>` : '<span class="step step--end">End of the line</span>'}
-      </nav>
+      ${siblings ? `<p class="station__onward">Also in this bay</p><div class="chips">${siblings}</div>` : ''}
       ${related ? `<p class="station__onward">Connects to</p><div class="chips">${related}</div>` : ''}
     </article>`;
     panel.hidden = false;
@@ -302,8 +352,8 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
 
   const nodeAt = (cx, cy) => {
     let best = null;
-    let bestD = 24 * k;
-    for (const s of map.stations) {
+    let bestD = 22 * k;
+    for (const s of model.stops) {
       const p = P(s);
       const d = Math.hypot(p.x - cx, p.y - cy);
       if (d < bestD) {
@@ -418,12 +468,10 @@ export function createMap({ canvas, panel, hud, stops, terms, lines, onOpen }) {
     if (el) open(el.dataset.goto, el.dataset.from);
   });
 
-  // Clicking a line in the legend opens its first stop: the "where do I start
-  // on this journey" answer.
   hud.addEventListener('click', (ev) => {
-    const el = ev.target.closest('[data-line]');
+    const el = ev.target.closest('[data-zone]');
     if (!el) return;
-    const first = map.stations.find((s) => s.line === el.dataset.line && s.index === 0);
+    const first = model.stops.find((s) => s.zone === el.dataset.zone);
     if (first) open(first.slug);
   });
 
