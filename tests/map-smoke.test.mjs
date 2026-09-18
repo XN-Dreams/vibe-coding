@@ -197,3 +197,39 @@ test('exposes zoom controls so the map is usable without a wheel', async () => {
   map.zoomBy(1.5, 500, 350);
   assert.ok(calls.length > before, 'zooming did not redraw');
 });
+
+// A keyboard user must not have to press Tab 65 times to get past the plant.
+// The stops are a roving tabstop: one entry point into the group, then arrow
+// keys move between machines.
+test('the plant is a single tab stop, not sixty-five', async () => {
+  const calls = [];
+  const nodes = install(calls);
+  const { createMap } = await import('../site/map.js');
+  createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, plant });
+
+  const html = nodes.netstops.innerHTML;
+  const tabbable = (html.match(/tabindex="0"/g) ?? []).length;
+  const removed = (html.match(/tabindex="-1"/g) ?? []).length;
+
+  assert.equal(tabbable, 1, `expected one tab stop into the plant, found ${tabbable}`);
+  assert.equal(removed, terms.length - 1, 'the remaining machines must be reachable by arrow key, not Tab');
+});
+
+test('every machine still carries an accessible name', async () => {
+  const calls = [];
+  const nodes = install(calls);
+  const { createMap } = await import('../site/map.js');
+  createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, plant });
+
+  const labels = (nodes.netstops.innerHTML.match(/aria-label="/g) ?? []).length;
+  assert.equal(labels, terms.length);
+});
+
+test('the opened panel offers a way to close it', async () => {
+  const calls = [];
+  const nodes = install(calls);
+  const { createMap } = await import('../site/map.js');
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, plant });
+  map.open('token');
+  assert.match(nodes.netpanel.innerHTML, /data-close/, 'no close control in the panel');
+});

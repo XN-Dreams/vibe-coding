@@ -4,7 +4,7 @@
     "zone": "Control room",
     "role": "control",
     "flow": "parallel",
-    "tagline": "Where you stand and drive it. These are controls, not steps — you reach for whichever one the job needs.",
+    "tagline": "Where you stand and drive it — the machine and the floor both. These are controls, not steps: you reach for whichever the job needs.",
     "bays": [
       {
         "title": "A working session",
@@ -51,7 +51,7 @@
     "zone": "The machine",
     "role": "machine",
     "flow": "sequence",
-    "tagline": "What is actually doing the work. This one IS a sequence: something goes in, something comes out, and it can act on what it made.",
+    "tagline": "What is actually doing the work. Once you know what it is, the rest IS a sequence: something goes in, something comes out, and then it can act on what it made.",
     "bays": [
       {
         "title": "What it is",
@@ -59,7 +59,9 @@
           "vibe-coding",
           "llm",
           "model"
-        ]
+        ],
+        "inFlow": false,
+        "entry": true
       },
       {
         "title": "What goes in",
@@ -149,7 +151,7 @@
     "zone": "Quality control",
     "role": "qc",
     "flow": "parallel",
-    "tagline": "Not a stage at the end. These sit over the whole plant, and every one of them is a gate something else has to pass through.",
+    "tagline": "Not a stage at the end. Each of these gates something above it, and the arrows point up into whatever it governs.",
     "bays": [
       {
         "title": "Before you build",
@@ -159,7 +161,8 @@
           "yagni",
           "scope-creep",
           "adr"
-        ]
+        ],
+        "gates": "control"
       },
       {
         "title": "As it grows",
@@ -167,7 +170,8 @@
           "refactor",
           "technical-debt",
           "regression"
-        ]
+        ],
+        "gates": "floor"
       },
       {
         "title": "When it is real",
@@ -176,7 +180,8 @@
           "verification",
           "rollback",
           "blast-radius"
-        ]
+        ],
+        "gates": "floor"
       }
     ]
   }

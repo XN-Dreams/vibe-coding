@@ -36,12 +36,43 @@ test('draws stage arrows only inside zones that declare a sequence', () => {
   }
 });
 
-test('gives each sequential zone one arrow fewer than it has bays', () => {
+test('chains only the bays that are actually in the flow', () => {
   const { flows } = build();
   for (const z of plant.filter((x) => x.flow === 'sequence')) {
+    const inFlow = z.bays.filter((b) => b.inFlow !== false).length;
     const n = flows.filter((f) => f.kind === 'stage' && f.zone === z.key).length;
-    assert.equal(n, z.bays.length - 1, `${z.key} should chain ${z.bays.length - 1} stages`);
+    assert.equal(n, inFlow - 1, `${z.key} should chain ${inFlow - 1} stages, not ${n}`);
   }
+});
+
+// The contradiction this closes: QC's caption said "not a stage at the end"
+// while a MUST PASS arrow pointed into it from the shop floor.
+test('nothing flows INTO quality control', () => {
+  const { flows, zones } = build();
+  const qc = zones.find((z) => z.role === 'qc');
+  for (const f of flows.filter((x) => x.kind === 'zone')) {
+    assert.ok(
+      f.to.y < qc.y,
+      'a zone flow terminates in quality control, which makes it a final stage again'
+    );
+  }
+});
+
+test('each quality-control bay sends a gate arrow UP into the zone it governs', () => {
+  const { flows, zones } = build();
+  const gates = flows.filter((f) => f.kind === 'gate');
+  const qc = plant.find((z) => z.role === 'qc');
+  assert.equal(gates.length, qc.bays.length, 'every QC bay must gate something');
+  for (const g of gates) {
+    assert.ok(g.to.y < g.from.y, 'a gate must point upward, into what it governs');
+  }
+});
+
+test('marks a single entry bay for a newcomer to start from', () => {
+  const { entry } = build();
+  assert.ok(entry, 'the plant has no entry point');
+  assert.equal(entry.title, 'What it is');
+  assert.equal(entry.inFlow, false, 'the entry plate is not a stage of the process');
 });
 
 test('keeps the four zones stacked without overlapping', () => {
@@ -82,16 +113,19 @@ test('keeps every stop inside its own bay', () => {
   }
 });
 
-test('keeps everything inside the canvas at several sizes', () => {
+// Bounded by the CONTENT box, not the canvas. On a phone the plant is
+// deliberately taller than the viewport and panning reveals the rest; the
+// invariant that still matters is that nothing falls outside the drawing.
+test('keeps everything inside the drawing at several sizes', () => {
   for (const box of [BOX, { width: 380, height: 620 }, { width: 1800, height: 950 }]) {
-    const { stops, zones } = layoutPlant(plant, glossary, box);
+    const { stops, zones, content } = layoutPlant(plant, glossary, box);
     for (const s of stops) {
-      assert.ok(s.x >= 0 && s.x <= box.width, `${s.slug} x=${s.x} outside 0..${box.width}`);
-      assert.ok(s.y >= 0 && s.y <= box.height, `${s.slug} y=${s.y} outside 0..${box.height}`);
+      assert.ok(s.x >= 0 && s.x <= content.width, `${s.slug} x=${s.x} outside 0..${content.width}`);
+      assert.ok(s.y >= 0 && s.y <= content.height, `${s.slug} y=${s.y} outside 0..${content.height}`);
     }
     for (const z of zones) {
-      assert.ok(z.x >= 0 && z.x + z.w <= box.width + 0.5, `${z.key} escapes horizontally at ${box.width}px`);
-      assert.ok(z.y >= 0 && z.y + z.h <= box.height + 0.5, `${z.key} escapes vertically at ${box.height}px`);
+      assert.ok(z.x >= 0 && z.x + z.w <= content.width + 0.5, `${z.key} escapes horizontally at ${box.width}px`);
+      assert.ok(z.y >= 0 && z.y + z.h <= content.height + 0.5, `${z.key} escapes vertically at ${box.width}px`);
     }
   }
 });
@@ -132,4 +166,32 @@ test('scales with the canvas', () => {
   const large = layoutPlant(plant, glossary, { width: 1800, height: 950 });
   const w = (r) => r.zones.find((z) => z.role === 'floor').w;
   assert.ok(w(large) > w(small) * 1.5);
+});
+
+// At 380px the shop floor's five bays came out 48px wide each, which is not a
+// diagram. Bays wrap onto more rows instead, and the plant grows taller than
+// the canvas so panning reveals it.
+test('never squeezes a bay below a readable width', () => {
+  for (const box of [{ width: 1200, height: 800 }, { width: 860, height: 640 }, { width: 380, height: 620 }]) {
+    const { bays } = layoutPlant(plant, glossary, box);
+    const narrowest = Math.min(...bays.map((b) => b.w));
+    assert.ok(narrowest > 100, `bays shrink to ${narrowest.toFixed(0)}px at ${box.width}px wide`);
+  }
+});
+
+test('grows the drawing taller than the canvas rather than compressing it', () => {
+  const phone = layoutPlant(plant, glossary, { width: 380, height: 620 });
+  assert.ok(phone.content.height > 620, 'the phone layout did not grow to fit its content');
+  const desktop = layoutPlant(plant, glossary, { width: 1200, height: 800 });
+  assert.equal(desktop.content.height, 800, 'a desktop layout should fit exactly, not scroll');
+});
+
+test('still keeps every bay inside its zone after wrapping', () => {
+  const { zones, bays } = layoutPlant(plant, glossary, { width: 380, height: 620 });
+  const byKey = Object.fromEntries(zones.map((z) => [z.key, z]));
+  for (const b of bays) {
+    const z = byKey[b.zone];
+    assert.ok(b.x >= z.x - 0.5 && b.x + b.w <= z.x + z.w + 0.5, `"${b.title}" escapes horizontally when wrapped`);
+    assert.ok(b.y >= z.y - 0.5 && b.y + b.h <= z.y + z.h + 1, `"${b.title}" escapes vertically when wrapped`);
+  }
 });
