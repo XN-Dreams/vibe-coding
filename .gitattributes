@@ -1,0 +1,4 @@
+# Keep LF in the working tree on every platform. The glossary build compares
+# generated file contents byte-for-byte; CRLF conversion would make `npm run check`
+# fail in CI for a reason that has nothing to do with the glossary.
+* text=auto eol=lf
