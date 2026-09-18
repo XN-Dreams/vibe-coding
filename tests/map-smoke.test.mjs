@@ -13,6 +13,7 @@ import { readFile } from 'node:fs/promises';
  */
 
 const terms = JSON.parse(await readFile(new URL('../data/glossary.json', import.meta.url), 'utf8'));
+const lines = JSON.parse(await readFile(new URL('../data/lines.json', import.meta.url), 'utf8'));
 
 function stubElement() {
   const el = {
@@ -42,6 +43,14 @@ function stubCanvas(calls) {
       {
         get(_t, prop) {
           if (prop === 'canvas') return el;
+          // measureText is the one context call whose RETURN value the code
+          // uses, so the stub has to model it rather than return undefined.
+          if (prop === 'measureText') {
+            return (text) => {
+              calls.push({ fn: 'measureText', args: [text] });
+              return { width: String(text).length * 6 };
+            };
+          }
           return (...args) => {
             calls.push({ fn: String(prop), args });
             for (const a of args) {
@@ -93,6 +102,7 @@ test('builds the whole network without throwing, and draws it', async () => {
     hud: nodes.nethud,
     stops: nodes.netstops,
     terms,
+    lines,
   });
 
   assert.ok(map, 'createMap returned nothing');
@@ -107,7 +117,7 @@ test('gives every station a focusable, labelled control', async () => {
   const calls = [];
   const nodes = install(calls);
   const { createMap } = await import('../site/map.js');
-  createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
 
   const buttons = nodes.netstops.innerHTML.match(/class="stop"/g) ?? [];
   assert.equal(buttons.length, terms.length, 'a station is unreachable by keyboard');
@@ -119,7 +129,7 @@ test('opening a station records progress and renders its entry', async () => {
   const calls = [];
   const nodes = install(calls);
   const { createMap } = await import('../site/map.js');
-  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
 
   map.open('context-window');
 
@@ -133,13 +143,13 @@ test('tracing a route counts the route and both of its stations', async () => {
   const calls = [];
   const nodes = install(calls);
   const { createMap } = await import('../site/map.js');
-  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
 
   map.open('context-window');
   map.open('token', 'context-window');
 
   assert.ok(/2<\/strong> of 65/.test(nodes.nethud.innerHTML), 'both stations were not counted');
-  assert.ok(/<strong>1<\/strong> routes/.test(nodes.nethud.innerHTML), 'the route was not counted');
+  assert.ok(/<strong>1<\/strong> interchanges/.test(nodes.nethud.innerHTML), 'the interchange was not counted');
 });
 
 test('survives localStorage being unavailable', async () => {
@@ -154,7 +164,7 @@ test('survives localStorage being unavailable', async () => {
     },
   };
   const { createMap } = await import('../site/map.js');
-  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
   map.open('token');
   assert.ok(/Token/.test(nodes.netpanel.innerHTML), 'blocked storage broke the map');
 });
@@ -167,7 +177,7 @@ test('renders at a phone-sized canvas without throwing or emitting NaN', async (
   nodes.netcanvas.getBoundingClientRect = () => ({ width: 360, height: 520, left: 0, top: 0 });
 
   const { createMap } = await import('../site/map.js');
-  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
   map.open('token');
 
   // the stub asserts finiteness on every numeric ctx argument as it records
@@ -179,7 +189,7 @@ test('exposes zoom controls so the map is usable without a wheel', async () => {
   const calls = [];
   const nodes = install(calls);
   const { createMap } = await import('../site/map.js');
-  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms, lines });
 
   assert.equal(typeof map.zoomBy, 'function');
   assert.equal(typeof map.fit, 'function');

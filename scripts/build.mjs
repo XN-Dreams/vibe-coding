@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateGlossary, renderMarkdown } from './lib/glossary.mjs';
 import { validateSchedule, scheduleWarnings, renderScheduleMarkdown } from './lib/schedule.mjs';
+import { validateLines } from './lib/lines.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const check = process.argv.includes('--check');
@@ -12,10 +13,12 @@ const read = async (p) => JSON.parse(await readFile(join(root, p), 'utf8'));
 
 const glossary = await read('data/glossary.json');
 const schedule = await read('data/schedule.json');
+const lines = await read('data/lines.json');
 
 const problems = [
   ['glossary', validateGlossary(glossary)],
   ['schedule', validateSchedule(schedule)],
+  ['lines', validateLines(lines, glossary)],
 ].filter(([, r]) => !r.ok);
 
 if (problems.length > 0) {
@@ -34,6 +37,8 @@ const targets = [
   ['docs/glossary.md', renderMarkdown(glossary)],
   ['docs/schedule.md', renderScheduleMarkdown(schedule)],
   ['site/glossary.json', `${JSON.stringify(glossary, null, 2)}\n`],
+  ['site/lines.json', `${JSON.stringify(lines, null, 2)}
+`],
   ['site/schedule.json', `${JSON.stringify(schedule, null, 2)}\n`],
 ];
 
@@ -55,5 +60,5 @@ if (check && stale) {
 console.log(
   check
     ? 'Generated files are up to date.'
-    : `Built ${glossary.length} terms and ${schedule.length} episodes.`
+    : `Built ${glossary.length} terms, ${schedule.length} episodes and ${lines.length} lines.`
 );

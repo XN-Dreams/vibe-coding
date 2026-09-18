@@ -373,3 +373,77 @@ h1 { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text
   .mapstage { height: clamp(380px, 62vh, 620px); }
   .maphint { order: 3; }
 }
+
+/* ------------------------------------------- route legend + stepper --- */
+
+.line {
+  display: grid;
+  grid-template-columns: 10px 1fr 3.4rem auto;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: .78rem;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--ground-line);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+.line:first-of-type { border-top: 0; }
+.line:hover .line__name { color: var(--ground-ink); }
+.line:focus-visible { outline: 2px solid var(--ground-ink); outline-offset: 2px; }
+.line__tag {
+  grid-column: 2 / -1;
+  font-size: .72rem;
+  line-height: 1.45;
+  color: var(--ground-mute);
+}
+.line--done .line__name::after { content: " ✓"; }
+
+.station__section {
+  margin: 0 0 var(--space-1);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+/* Walking the line is the primary motion; next/previous is how you do it. */
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.step {
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.step--next { color: var(--accent); text-align: right; }
+.step:hover { color: var(--text); }
+.step--next:hover { color: var(--accent); text-decoration: underline; }
+.step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.step--end { color: var(--muted); font-weight: 400; cursor: default; font-style: italic; }
+
+.chip--change { border-style: dashed; }
+.chip__x {
+  margin-left: var(--space-1);
+  font-size: .64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}

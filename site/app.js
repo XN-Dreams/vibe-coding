@@ -5,9 +5,10 @@ import { formatCountdown, formatLocal, msUntil, viewerTimeZone } from './countdo
 import { esc, safeUrl } from './escape.js';
 import { createMap } from './map.js';
 
-const [terms, schedule] = await Promise.all([
+const [terms, schedule, lines] = await Promise.all([
   fetch('glossary.json').then((r) => r.json()),
   fetch('schedule.json').then((r) => r.json()),
+  fetch('lines.json').then((r) => r.json()),
 ]);
 
 /* ---------------------------------------------------------------- tabs --- */
@@ -170,6 +171,7 @@ const network = createMap({
   hud: document.getElementById('nethud'),
   stops: document.getElementById('netstops'),
   terms,
+  lines,
 });
 
 // Routing runs last: the map must exist before a #map hash can lay it out.
