@@ -1,4 +1,4 @@
-import { layoutNetwork } from './layout.js';
+import { layoutNetwork, sizeScale } from './layout.js';
 import { CATEGORY_TITLES } from './categories.js';
 import { visit, traceRoute, summarise, isVisited, EMPTY } from './progress.js';
 import { esc } from './escape.js';
@@ -57,6 +57,9 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
   let selected = null;
   let view = { scale: 1, x: 0, y: 0 };
   let pointer = null;
+  let k = 1;                       // station/label size factor for this canvas
+  const touches = new Map();       // active pointers, for pinch
+  let pinchStart = null;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let reveal = reduceMotion ? 1 : 0;
@@ -71,7 +74,10 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
     canvas.height = Math.round(rect.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    graph = layoutNetwork(terms, { width: rect.width, height: rect.height });
+    const box = { width: rect.width, height: rect.height };
+    k = sizeScale(box);
+    graph = layoutNetwork(terms, box);
+    view = { scale: 1, x: 0, y: 0 };   // a relayout is a new map; reset the camera
     renderStops(rect);
     draw();
   }
@@ -128,7 +134,7 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
 
       ctx.strokeStyle = lit ? '#FFFFFF' : sameLine ? LINE[a.category] : TRACK_NEUTRAL;
       ctx.globalAlpha = focus ? (lit ? 1 : 0.18) : sameLine ? 0.78 : 1;
-      ctx.lineWidth = (lit ? 4.5 : sameLine ? 3.4 : 1.6) * Math.min(view.scale, 1.6);
+      ctx.lineWidth = (lit ? 4.5 : sameLine ? 3.4 : 1.6) * k * Math.min(view.scale, 1.6);
 
       ctx.beginPath();
       ctx.moveTo(pa.x, pa.y);
@@ -144,7 +150,7 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
       const active = n.slug === focus;
       const dim = focus && !active && !neighbours.has(n.slug);
 
-      const r = (hub ? 9 : 6) * Math.min(view.scale, 1.5);
+      const r = (hub ? 9 : 6) * k * Math.min(view.scale, 1.5);
       ctx.globalAlpha = dim ? 0.25 : 1;
 
       // Interchange stations get the double ring a transit map gives them.
@@ -168,7 +174,7 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
       // visited, the interchanges, and whatever you are pointing at.
       const label = active || hub || seen;
       if (label && !dim) {
-        ctx.font = `600 ${Math.round(11 * Math.min(view.scale, 1.4))}px Archivo, system-ui, sans-serif`;
+        ctx.font = `600 ${Math.round(11 * k * Math.min(view.scale, 1.4))}px Archivo, system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const text = n.term;
@@ -258,7 +264,7 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
 
   const nodeAt = (cx, cy) => {
     let best = null;
-    let bestD = 26;
+    let bestD = 26 * k;
     for (const n of graph.nodes) {
       const p = toScreen(n);
       const d = Math.hypot(p.x - cx, p.y - cy);
@@ -270,7 +276,34 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
     return best;
   };
 
+  function zoomBy(factor, cx, cy) {
+    const next = Math.min(4, Math.max(0.5, view.scale * factor));
+    view.x = cx - ((cx - view.x) / view.scale) * next;
+    view.y = cy - ((cy - view.y) / view.scale) * next;
+    view.scale = next;
+    draw();
+  }
+
+  function fit() {
+    view = { scale: 1, x: 0, y: 0 };
+    draw();
+  }
+
   canvas.addEventListener('pointermove', (ev) => {
+    if (touches.has(ev.pointerId)) touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+
+    // Two fingers: pinch. Without this the map is unusable on a touch device,
+    // where there is no wheel to zoom with.
+    if (touches.size === 2) {
+      const [a, b] = [...touches.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const rect = canvas.getBoundingClientRect();
+      const mid = { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top };
+      if (pinchStart) zoomBy(dist / pinchStart, mid.x, mid.y);
+      pinchStart = dist;
+      return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     if (pointer) {
       view.x += ev.clientX - pointer.x;
@@ -289,6 +322,8 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
   });
 
   canvas.addEventListener('pointerdown', (ev) => {
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (touches.size === 2) { pointer = null; pinchStart = null; return; }
     const rect = canvas.getBoundingClientRect();
     const hit = nodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
     if (hit) {
@@ -300,7 +335,9 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
     canvas.style.cursor = 'grabbing';
   });
 
-  const endPan = () => {
+  const endPan = (ev) => {
+    if (ev?.pointerId !== undefined) touches.delete(ev.pointerId);
+    if (touches.size < 2) pinchStart = null;
     pointer = null;
     canvas.style.cursor = 'grab';
   };
@@ -321,12 +358,8 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
       const rect = canvas.getBoundingClientRect();
       const mx = ev.clientX - rect.left;
       const my = ev.clientY - rect.top;
-      const next = Math.min(3, Math.max(0.6, view.scale * (ev.deltaY < 0 ? 1.12 : 0.89)));
       // Zoom about the cursor, not the origin, or the map runs away from you.
-      view.x = mx - ((mx - view.x) / view.scale) * next;
-      view.y = my - ((my - view.y) / view.scale) * next;
-      view.scale = next;
-      draw();
+      zoomBy(ev.deltaY < 0 ? 1.12 : 0.89, mx, my);
     },
     { passive: false }
   );
@@ -349,16 +382,39 @@ export function createMap({ canvas, panel, hud, stops, terms, onOpen }) {
   });
 
   let resizeTimer;
-  window.addEventListener('resize', () => {
+  let lastSize = '';
+  const onResize = () => {
+    const r = canvas.getBoundingClientRect();
+    const sig = `${Math.round(r.width)}x${Math.round(r.height)}`;
+    if (sig === lastSize || r.width < 2) return;   // hidden tab, or no real change
+    lastSize = sig;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(relayout, 160);
-  });
+    resizeTimer = setTimeout(relayout, 140);
+  };
+
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(onResize).observe(canvas);
+  } else {
+    window.addEventListener('resize', onResize);
+  }
+
+  // Zoom is not wheel-only: a trackpad-less mouse, a touch device and a keyboard
+  // user all need a control they can actually reach.
+  const centre = () => {
+    const r = canvas.getBoundingClientRect();
+    return [r.width / 2, r.height / 2];
+  };
+  document.getElementById('zoomin')?.addEventListener('click', () => zoomBy(1.25, ...centre()));
+  document.getElementById('zoomout')?.addEventListener('click', () => zoomBy(0.8, ...centre()));
+  document.getElementById('zoomfit')?.addEventListener('click', fit);
 
   relayout();
   renderHud();
 
   return {
     open,
+    zoomBy,
+    fit,
     reset() {
       progress = EMPTY;
       saveProgress(progress);

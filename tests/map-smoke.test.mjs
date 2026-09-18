@@ -158,3 +158,32 @@ test('survives localStorage being unavailable', async () => {
   map.open('token');
   assert.ok(/Token/.test(nodes.netpanel.innerHTML), 'blocked storage broke the map');
 });
+
+// The map must work on the canvas it is actually given. It was previously
+// rendered inside a 68ch reading column, which left it about 290px wide.
+test('renders at a phone-sized canvas without throwing or emitting NaN', async () => {
+  const calls = [];
+  const nodes = install(calls);
+  nodes.netcanvas.getBoundingClientRect = () => ({ width: 360, height: 520, left: 0, top: 0 });
+
+  const { createMap } = await import('../site/map.js');
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+  map.open('token');
+
+  // the stub asserts finiteness on every numeric ctx argument as it records
+  assert.ok(calls.filter((c) => c.fn === 'arc').length >= terms.length);
+  assert.equal((nodes.netstops.innerHTML.match(/class="stop"/g) ?? []).length, terms.length);
+});
+
+test('exposes zoom controls so the map is usable without a wheel', async () => {
+  const calls = [];
+  const nodes = install(calls);
+  const { createMap } = await import('../site/map.js');
+  const map = createMap({ canvas: nodes.netcanvas, panel: nodes.netpanel, hud: nodes.nethud, stops: nodes.netstops, terms });
+
+  assert.equal(typeof map.zoomBy, 'function');
+  assert.equal(typeof map.fit, 'function');
+  const before = calls.length;
+  map.zoomBy(1.5, 500, 350);
+  assert.ok(calls.length > before, 'zooming did not redraw');
+});

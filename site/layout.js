@@ -30,7 +30,16 @@ const DEFAULTS = {
 };
 
 export function layoutNetwork(terms, box, options = {}) {
-  const opt = { ...DEFAULTS, ...options };
+  // Distances tuned for one canvas size are wrong at every other size: on a wide
+  // desktop the network becomes a cluster of dots in the middle, and on a phone
+  // the stations pile on top of each other. Scale them with the drawing area.
+  const k = Math.sqrt((box.width * box.height) / (1000 * 700));
+  const scaled = {
+    springLength: DEFAULTS.springLength * clamp(k, 0.55, 1.9),
+    minSeparation: DEFAULTS.minSeparation * clamp(k, 0.6, 1.8),
+    repulsion: DEFAULTS.repulsion * clamp(k * k, 0.4, 2.6),
+  };
+  const opt = { ...DEFAULTS, ...scaled, ...options };
   if (terms.length === 0) return { nodes: [], edges: [] };
 
   const index = new Map(terms.map((t, i) => [t.slug, i]));
@@ -175,6 +184,12 @@ export function layoutNetwork(terms, box, options = {}) {
 }
 
 const round = (n) => Math.round(n * 100) / 100;
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+
+/** The factor the renderer should scale station and label sizes by. */
+export function sizeScale(box) {
+  return clamp(Math.sqrt((box.width * box.height) / (1000 * 700)), 0.7, 1.6);
+}
 
 function categoryCentroids(nodes, categories) {
   const acc = {};

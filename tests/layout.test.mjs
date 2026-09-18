@@ -147,3 +147,39 @@ test('keeps each category coherent rather than blending them together', () => {
   }
   assert.ok(closestPair > 90, `category centroids only ${closestPair.toFixed(0)}px apart — the lines blend`);
 });
+
+// Distances tuned for one canvas are wrong on every other canvas. On a wide
+// desktop the network must spread; on a phone it must stay legible instead of
+// piling stations on top of each other.
+test('spreads further on a larger canvas rather than clustering in the middle', () => {
+  const many = Array.from({ length: 50 }, (_, i) => ({
+    slug: `t${i}`, term: `T${i}`,
+    category: ['core', 'claude-code', 'engineering', 'discipline'][i % 4],
+    related: i > 3 ? [`t${i - 4}`] : [],
+  }));
+  const gap = (box) => {
+    const { nodes } = layoutNetwork(many, box);
+    let closest = Infinity;
+    for (let i = 0; i < nodes.length; i++)
+      for (let j = i + 1; j < nodes.length; j++)
+        closest = Math.min(closest, Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y));
+    return closest;
+  };
+  const small = gap({ width: 380, height: 520 });
+  const large = gap({ width: 1500, height: 880 });
+  assert.ok(large > small * 1.5, `large canvas gap ${large.toFixed(1)} vs small ${small.toFixed(1)} — not scaling`);
+});
+
+test('keeps stations apart even on a phone-sized canvas', () => {
+  const many = Array.from({ length: 65 }, (_, i) => ({
+    slug: `t${i}`, term: `T${i}`,
+    category: ['core', 'claude-code', 'engineering', 'discipline'][i % 4],
+    related: i > 3 ? [`t${i - 4}`] : [],
+  }));
+  const { nodes } = layoutNetwork(many, { width: 380, height: 520 });
+  let closest = Infinity;
+  for (let i = 0; i < nodes.length; i++)
+    for (let j = i + 1; j < nodes.length; j++)
+      closest = Math.min(closest, Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y));
+  assert.ok(closest > 12, `stations only ${closest.toFixed(1)}px apart on a phone`);
+});

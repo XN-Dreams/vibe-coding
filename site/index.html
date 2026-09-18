@@ -31,11 +31,16 @@
           <canvas id="netcanvas" role="img"
             aria-label="The glossary drawn as a transit network. Every term is a station and every cross-reference a section of track. A list of all stations follows."></canvas>
           <div id="netstops" class="stops"></div>
+          <div class="mapctl">
+            <button type="button" id="zoomout" aria-label="Zoom out">&minus;</button>
+            <button type="button" id="zoomfit" aria-label="Fit the whole network">&#9633;</button>
+            <button type="button" id="zoomin" aria-label="Zoom in">+</button>
+          </div>
         </div>
         <aside class="mapside">
           <div id="nethud" class="hud"></div>
           <div id="netpanel" class="station-panel" hidden></div>
-          <p class="maphint">Click a station to open it. Drag to pan, scroll to zoom.
+          <p class="maphint">Click a station to open it. Drag to pan, scroll or pinch to zoom.
             Follow an <b>Onward from here</b> link to trace a route.</p>
         </aside>
       </div>

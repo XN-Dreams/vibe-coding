@@ -257,13 +257,24 @@ footer { margin-top: var(--space-8); color: var(--muted); font-size: .875rem; }
 body { font-family: var(--body); }
 h1 { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text-transform: uppercase; }
 
-.view--map { margin-top: var(--space-5); }
+.view--map {
+  margin-top: var(--space-5);
+  /* Escape the 68ch reading column. `main` is sized for prose; a map is not
+     prose, and squeezing it into a text measure was why it felt tiny. */
+  width: min(1560px, 94vw);
+  margin-inline: calc(50% - min(780px, 47vw));
+}
 
-.mapwrap { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: var(--space-4); align-items: start; }
+.mapwrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(15rem, 22vw, 20rem);
+  gap: var(--space-4);
+  align-items: start;
+}
 
 .mapstage {
   position: relative;
-  aspect-ratio: 10 / 7;
+  height: clamp(420px, 70vh, 900px);
   border-radius: var(--r-md);
   overflow: hidden;
   background: var(--ground);
@@ -287,6 +298,25 @@ h1 { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text
 .stop:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 50%; }
 
 .mapside { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.mapctl {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  gap: var(--space-1);
+}
+.mapctl button {
+  width: 34px; height: 34px;
+  font: 600 15px/1 var(--body);
+  color: var(--ground-ink);
+  background: rgba(11, 42, 46, .82);
+  border: 1px solid var(--ground-line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.mapctl button:hover { background: rgba(11, 42, 46, .95); }
+.mapctl button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* --- progress --- */
 
@@ -337,8 +367,9 @@ h1 { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; text
   .line__bar i, .chip { transition: none; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
+  .view--map { width: 100%; margin-inline: 0; }
   .mapwrap { grid-template-columns: 1fr; }
-  .mapstage { aspect-ratio: 1 / 1; }
+  .mapstage { height: clamp(380px, 62vh, 620px); }
   .maphint { order: 3; }
 }
