@@ -64,3 +64,41 @@ test('reports every error, not just the first', () => {
   ]);
   assert.equal(result.errors.length, 2);
 });
+
+import { renderMarkdown } from '../scripts/lib/glossary.mjs';
+
+const twoEntries = [
+  { term: 'Token', slug: 'token', category: 'core', short: 'A chunk of text.',
+    why: 'Limits are measured in these.', hear_it: '"Out of tokens."', related: ['prompt'] },
+  { term: 'Prompt', slug: 'prompt', category: 'core', short: 'What you ask for.',
+    why: 'Vague in, vague out.', hear_it: '"Tighten the prompt."', related: [] },
+];
+
+test('renders a heading and an anchor per term', () => {
+  const md = renderMarkdown(twoEntries);
+  assert.match(md, /### Token/);
+  assert.match(md, /<a id="token">/);
+});
+
+test('groups entries under their category heading', () => {
+  const md = renderMarkdown(twoEntries);
+  assert.match(md, /## Core concepts/);
+});
+
+test('sorts terms alphabetically within a category', () => {
+  const md = renderMarkdown(twoEntries);
+  assert.ok(md.indexOf('### Prompt') < md.indexOf('### Token'));
+});
+
+test('renders related terms as working intra-document links', () => {
+  const md = renderMarkdown(twoEntries);
+  assert.match(md, /\[Prompt\]\(#prompt\)/);
+});
+
+test('is deterministic — same input, identical output', () => {
+  assert.equal(renderMarkdown(twoEntries), renderMarkdown(twoEntries));
+});
+
+test('carries the do-not-edit banner', () => {
+  assert.match(renderMarkdown(twoEntries), /generated/i);
+});

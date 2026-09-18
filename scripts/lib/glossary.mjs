@@ -1,4 +1,4 @@
-import { CATEGORIES } from '../../site/categories.js';
+import { CATEGORIES, CATEGORY_TITLES } from '../../site/categories.js';
 
 export { CATEGORIES };
 
@@ -32,4 +32,32 @@ export function validateGlossary(entries) {
   }
 
   return { ok: errors.length === 0, errors };
+}
+
+export function renderMarkdown(entries) {
+  const byTerm = new Map(entries.map((e) => [e.slug, e.term]));
+  const lines = [
+    '# Glossary',
+    '',
+    '> Generated from `data/glossary.json` by `npm run build`. Do not hand-edit.',
+    '',
+  ];
+
+  for (const category of CATEGORIES) {
+    const group = entries
+      .filter((e) => e.category === category)
+      .sort((a, b) => a.term.localeCompare(b.term, 'en'));
+    if (group.length === 0) continue;
+
+    lines.push(`## ${CATEGORY_TITLES[category]}`, '');
+    for (const e of group) {
+      lines.push(`<a id="${e.slug}"></a>`, '', `### ${e.term}`, '', e.short, '', `**Why it matters.** ${e.why}`, '', `**You'll hear it.** ${e.hear_it}`, '');
+      if (e.related.length > 0) {
+        const links = e.related.map((r) => `[${byTerm.get(r)}](#${r})`).join(' · ');
+        lines.push(`**See also.** ${links}`, '');
+      }
+    }
+  }
+
+  return lines.join('\n');
 }
