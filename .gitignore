@@ -5,3 +5,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# extract-design-system working cache
+.extract-design-system/
