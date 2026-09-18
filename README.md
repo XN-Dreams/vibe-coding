@@ -3,7 +3,9 @@
 A live-streamed series on building real software by describing what you want —
 and on knowing enough to check whether you got it.
 
+- **[The schedule](https://xn-dreams.github.io/vibe-coding/#schedule)** — when each episode airs, in your timezone
 - **[The roadmap](docs/roadmap.md)** — what the five episodes cover
+- **[Programming decisions](docs/programming.md)** — why it is scheduled this way, with sources
 - **[The glossary](docs/glossary.md)** — every term the series uses, in plain language
 - **[The site](site/)** — the glossary, searchable
 

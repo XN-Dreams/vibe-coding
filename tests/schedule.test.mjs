@@ -6,6 +6,7 @@ import {
   nextEpisode,
   scheduleWarnings,
   renderScheduleMarkdown,
+  blockTimes,
 } from '../scripts/lib/schedule.mjs';
 
 const ep = (n, startsAt, extra = {}) => ({
@@ -163,4 +164,88 @@ test('carries the do-not-edit banner', () => {
 
 test('markdown render is deterministic', () => {
   assert.equal(renderScheduleMarkdown([EP1, EP2]), renderScheduleMarkdown([EP1, EP2]));
+});
+
+// ---------- programme blocks ----------
+
+const withBlocks = (blocks) => ({ ...EP2, blocks });
+
+test('accepts blocks that tile the episode window in order', () => {
+  const r = validateSchedule([
+    withBlocks([
+      { offset_minutes: 0, duration_minutes: 240, title: 'First half', detail: 'x' },
+      { offset_minutes: 240, duration_minutes: 240, title: 'Second half', detail: 'y' },
+    ]),
+  ]);
+  assert.equal(r.ok, true, r.errors.join('; '));
+});
+
+test('rejects blocks that overlap', () => {
+  const r = validateSchedule([
+    withBlocks([
+      { offset_minutes: 0, duration_minutes: 200, title: 'A', detail: 'x' },
+      { offset_minutes: 150, duration_minutes: 100, title: 'B', detail: 'y' },
+    ]),
+  ]);
+  assert.equal(r.ok, false);
+  assert.match(r.errors[0], /overlap/i);
+});
+
+test('rejects blocks listed out of order', () => {
+  const r = validateSchedule([
+    withBlocks([
+      { offset_minutes: 240, duration_minutes: 100, title: 'B', detail: 'y' },
+      { offset_minutes: 0, duration_minutes: 100, title: 'A', detail: 'x' },
+    ]),
+  ]);
+  assert.equal(r.ok, false);
+  assert.match(r.errors[0], /order/i);
+});
+
+// The invariant that matters to a viewer: a published block time must fall
+// inside the stream. A block that runs past the end is a promise we cannot keep.
+test('rejects a block that runs past the end of the episode', () => {
+  const r = validateSchedule([
+    withBlocks([{ offset_minutes: 0, duration_minutes: 600, title: 'Too long', detail: 'x' }]),
+  ]);
+  assert.equal(r.ok, false);
+  assert.match(r.errors[0], /past the end|exceeds/i);
+});
+
+test('rejects a block with a non-positive duration', () => {
+  const r = validateSchedule([
+    withBlocks([{ offset_minutes: 0, duration_minutes: 0, title: 'Nothing', detail: 'x' }]),
+  ]);
+  assert.equal(r.ok, false);
+  assert.match(r.errors[0], /duration/i);
+});
+
+test('rejects a block missing a title', () => {
+  const r = validateSchedule([withBlocks([{ offset_minutes: 0, duration_minutes: 60, detail: 'x' }])]);
+  assert.equal(r.ok, false);
+  assert.match(r.errors[0], /title/i);
+});
+
+test('treats blocks as optional', () => {
+  const { blocks, ...noBlocks } = withBlocks([]);
+  assert.equal(validateSchedule([noBlocks]).ok, true);
+});
+
+test('blockTimes returns an absolute UTC start for each block', () => {
+  const e = withBlocks([
+    { offset_minutes: 0, duration_minutes: 150, title: 'A', detail: 'x' },
+    { offset_minutes: 170, duration_minutes: 160, title: 'B', detail: 'y' },
+  ]);
+  const times = blockTimes(e);
+  assert.equal(times[0].starts_at, '2026-09-21T16:00:00.000Z');
+  assert.equal(times[1].starts_at, '2026-09-21T18:50:00.000Z');
+});
+
+test('blockTimes marks which block is running at a given moment', () => {
+  const e = withBlocks([
+    { offset_minutes: 0, duration_minutes: 150, title: 'A', detail: 'x' },
+    { offset_minutes: 150, duration_minutes: 150, title: 'B', detail: 'y' },
+  ]);
+  const times = blockTimes(e, '2026-09-21T19:00:00Z');
+  assert.deepEqual(times.map((b) => b.current), [false, true]);
 });

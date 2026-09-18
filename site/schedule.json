@@ -15,7 +15,39 @@
     "links": {
       "recap": "https://github.com/XN-Dreams/vibe-coding/blob/main/episodes/ep-01.md",
       "repo": "https://github.com/XN-Dreams/vibe-coding"
-    }
+    },
+    "blocks": [
+      {
+        "offset_minutes": 0,
+        "duration_minutes": 150,
+        "title": "Plan and scaffold",
+        "detail": "Deciding what to build before typing. Roadmap, repo, first commit."
+      },
+      {
+        "offset_minutes": 150,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 170,
+        "duration_minutes": 160,
+        "title": "Write the glossary",
+        "detail": "Fifty terms, test-first, with a guard we break on purpose."
+      },
+      {
+        "offset_minutes": 330,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 350,
+        "duration_minutes": 130,
+        "title": "Build and ship the site",
+        "detail": "Static site, CI, a real deploy, and checking it actually works."
+      }
+    ]
   },
   {
     "episode": 2,
@@ -30,7 +62,39 @@
       "When does a framework earn its place?",
       "Choosing the episode 3-5 product"
     ],
-    "links": {}
+    "links": {},
+    "blocks": [
+      {
+        "offset_minutes": 0,
+        "duration_minutes": 150,
+        "title": "Search and permalinks",
+        "detail": "Making the glossary findable, and every term linkable."
+      },
+      {
+        "offset_minutes": 150,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 170,
+        "duration_minutes": 160,
+        "title": "The framework question",
+        "detail": "A submit form needs a server. We decide on air, with the requirement in hand."
+      },
+      {
+        "offset_minutes": 330,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 350,
+        "duration_minutes": 130,
+        "title": "Pick the product",
+        "detail": "Choosing what episodes 3-5 build, against written criteria."
+      }
+    ]
   },
   {
     "episode": 3,
@@ -44,7 +108,39 @@
       "Turning a spec into a plan",
       "Scaffolding without scope creep"
     ],
-    "links": {}
+    "links": {},
+    "blocks": [
+      {
+        "offset_minutes": 0,
+        "duration_minutes": 150,
+        "title": "Brainstorm to spec",
+        "detail": "Turning an idea into something written down and arguable."
+      },
+      {
+        "offset_minutes": 150,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 170,
+        "duration_minutes": 160,
+        "title": "Spec to plan",
+        "detail": "Breaking a spec into work that can actually be executed."
+      },
+      {
+        "offset_minutes": 330,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 350,
+        "duration_minutes": 130,
+        "title": "Scaffold",
+        "detail": "Standing it up without scope creep."
+      }
+    ]
   },
   {
     "episode": 4,
@@ -59,7 +155,39 @@
       "Secrets, and where they must never go",
       "Running it twice without breaking it"
     ],
-    "links": {}
+    "links": {},
+    "blocks": [
+      {
+        "offset_minutes": 0,
+        "duration_minutes": 150,
+        "title": "Design the schema",
+        "detail": "Modelling the data before writing code against it."
+      },
+      {
+        "offset_minutes": 150,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 170,
+        "duration_minutes": 160,
+        "title": "Persistence and seeds",
+        "detail": "Making it hold state, and running it twice safely."
+      },
+      {
+        "offset_minutes": 330,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 350,
+        "duration_minutes": 130,
+        "title": "Secrets and config",
+        "detail": "Where credentials go, and where they must never go."
+      }
+    ]
   },
   {
     "episode": 5,
@@ -74,6 +202,38 @@
       "Rollback, and knowing you can",
       "\"It ran\" versus \"it worked\""
     ],
-    "links": {}
+    "links": {},
+    "blocks": [
+      {
+        "offset_minutes": 0,
+        "duration_minutes": 150,
+        "title": "Accounts and access",
+        "detail": "Letting people in without letting them break it."
+      },
+      {
+        "offset_minutes": 150,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 170,
+        "duration_minutes": 160,
+        "title": "CI that gates the deploy",
+        "detail": "Tests that stop a bad change reaching production."
+      },
+      {
+        "offset_minutes": 330,
+        "duration_minutes": 20,
+        "title": "Break",
+        "detail": "Back in 20."
+      },
+      {
+        "offset_minutes": 350,
+        "duration_minutes": 130,
+        "title": "Ship and verify",
+        "detail": "Deploying, rolling back, and proving it worked."
+      }
+    ]
   }
 ]

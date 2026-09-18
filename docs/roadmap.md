@@ -96,3 +96,9 @@ worth making, and it costs more.
 |---|----------|-------|------------|
 | 1 | What the Episode 3–5 product is | stream + operator | Episode 2 |
 | 2 | Stay static or adopt a framework for submissions | decided on air | Episode 2 |
+| 3 | Saturday pilot vs staying on Monday | stream + operator | Episode 3 |
+| 4 | Whether block-level arrivals justify the 8-hour format | measurement | Episode 3 |
+
+See **[programming decisions](programming.md)** for the research behind the
+schedule, the format and the platform choices — including what did not survive
+fact-checking.

@@ -1,6 +1,6 @@
 import { filterTerms } from './filter.js';
 import { CATEGORY_TITLES } from './categories.js';
-import { deriveStates, STATE_LABEL } from './schedule-state.js';
+import { deriveStates, STATE_LABEL, blockTimes } from './schedule-state.js';
 import { formatCountdown, formatLocal, msUntil, viewerTimeZone } from './countdown.js';
 import { esc, safeUrl } from './escape.js';
 
@@ -32,7 +32,31 @@ const tz = viewerTimeZone();
 document.getElementById('tzline').textContent =
   `Times shown in your timezone (${tz}). The stream starts at 16:00 UTC.`;
 
-function episodeCard(e) {
+const hhmm = (iso) =>
+  new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz })
+    .format(new Date(iso));
+
+function programme(e, now) {
+  const blocks = blockTimes(e, now);
+  if (blocks.length === 0) return '';
+
+  const rows = blocks
+    .map(
+      (b) => `<li class="blk${b.current ? ' blk--now' : ''}">
+        <span class="blk__time">${esc(hhmm(b.starts_at))}</span>
+        <span class="blk__title">${esc(b.title)}${b.current ? ' <em>on now</em>' : ''}</span>
+        <span class="blk__detail">${esc(b.detail ?? '')}</span>
+      </li>`
+    )
+    .join('');
+
+  return `<details class="prog"${e.state === 'live' || e.state === 'next' ? ' open' : ''}>
+    <summary>Running order &middot; ${blocks.length} blocks, in your time</summary>
+    <ol class="blocks">${rows}</ol>
+  </details>`;
+}
+
+function episodeCard(e, now) {
   const when = formatLocal(e.starts_at, tz);
   const covers = (e.covers ?? [])
     .map((c) => `<li>${esc(c)}</li>`)
@@ -51,6 +75,7 @@ function episodeCard(e) {
       <p class="ep__when"><time datetime="${esc(e.starts_at)}">${esc(when)}</time> &middot; ${e.duration_hours}h</p>
       <p class="ep__summary">${esc(e.summary)}</p>
       ${covers ? `<ul class="ep__covers">${covers}</ul>` : ''}
+      ${programme(e, now)}
       ${links ? `<p class="ep__links">${links}</p>` : ''}
     </div>
   </article>`;
@@ -60,7 +85,7 @@ function renderSchedule() {
   const now = new Date().toISOString();
   const episodes = deriveStates(schedule, now);
 
-  document.getElementById('episodes').innerHTML = episodes.map(episodeCard).join('');
+  document.getElementById('episodes').innerHTML = episodes.map((e) => episodeCard(e, now)).join('');
 
   const live = episodes.find((e) => e.state === 'live');
   const next = episodes.find((e) => e.state === 'next');

@@ -1,6 +1,6 @@
-import { deriveStates, nextEpisode, STATE_LABEL } from '../../site/schedule-state.js';
+import { deriveStates, nextEpisode, blockTimes, STATE_LABEL } from '../../site/schedule-state.js';
 
-export { deriveStates, nextEpisode, STATE_LABEL };
+export { deriveStates, nextEpisode, blockTimes, STATE_LABEL };
 
 const endMs = (e) => Date.parse(e.starts_at) + e.duration_hours * 3600_000;
 
@@ -59,10 +59,59 @@ export function validateSchedule(entries) {
     if (e?.covers !== undefined && !Array.isArray(e.covers)) {
       errors.push(`${id}: covers must be an array`);
     }
+
+    if (e?.blocks !== undefined) errors.push(...blockErrors(e, id));
   }
 
   return { ok: errors.length === 0, errors };
 }
+
+/**
+ * Programme blocks are what make an eight-hour stream followable: a viewer can
+ * see that "the framework question" starts at 18:50 their time and join for
+ * that. Which means a published block time is a promise, so the invariants are
+ * strict — no overlaps, no gaps out of order, nothing running past the end.
+ */
+function blockErrors(e, id) {
+  const errors = [];
+
+  if (!Array.isArray(e.blocks)) return [`${id}: blocks must be an array`];
+
+  const windowMinutes = (e.duration_hours ?? 0) * 60;
+  let prevEnd = -1;
+  let prevOffset = -1;
+
+  for (const [i, b] of e.blocks.entries()) {
+    const where = `${id} block ${i + 1}`;
+
+    if (typeof b?.title !== 'string' || b.title.trim() === '') {
+      errors.push(`${where}: missing title`);
+    }
+    if (!Number.isFinite(b?.offset_minutes) || b.offset_minutes < 0) {
+      errors.push(`${where}: offset_minutes must be zero or more`);
+      continue;
+    }
+    if (!Number.isFinite(b?.duration_minutes) || b.duration_minutes <= 0) {
+      errors.push(`${where}: duration_minutes must be a positive number`);
+      continue;
+    }
+
+    if (b.offset_minutes < prevOffset) {
+      errors.push(`${where}: blocks must be listed in start order`);
+    } else if (b.offset_minutes < prevEnd) {
+      errors.push(`${where} ("${b.title}") overlaps the block before it`);
+    }
+    if (b.offset_minutes + b.duration_minutes > windowMinutes) {
+      errors.push(`${where} ("${b.title}") runs past the end of the episode`);
+    }
+
+    prevOffset = b.offset_minutes;
+    prevEnd = b.offset_minutes + b.duration_minutes;
+  }
+
+  return errors;
+}
+
 
 /**
  * Non-fatal drift warnings. Deliberately NOT errors: a stale recap link should

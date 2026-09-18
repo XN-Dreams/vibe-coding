@@ -32,6 +32,30 @@ export function deriveStates(entries, now) {
   });
 }
 
+/**
+ * Absolute UTC start and end for each programme block, plus which one is
+ * running at `now`.
+ *
+ * Blocks are stored as OFFSETS, never absolute times, so moving an episode to
+ * a different day or hour carries its whole programme with it — there is no
+ * second set of timestamps to keep in sync by hand.
+ */
+export function blockTimes(episode, now) {
+  const base = Date.parse(episode.starts_at);
+  const nowMs = now === undefined ? NaN : Date.parse(now);
+
+  return (episode.blocks ?? []).map((b) => {
+    const startMs = base + b.offset_minutes * 60_000;
+    const endMs = startMs + b.duration_minutes * 60_000;
+    return {
+      ...b,
+      starts_at: new Date(startMs).toISOString(),
+      ends_at: new Date(endMs).toISOString(),
+      current: Number.isNaN(nowMs) ? false : nowMs >= startMs && nowMs < endMs,
+    };
+  });
+}
+
 /** The soonest episode that has not started yet, or null. */
 export function nextEpisode(entries, now) {
   const nowMs = Date.parse(now);
