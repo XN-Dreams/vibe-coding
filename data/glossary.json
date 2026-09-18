@@ -6,16 +6,24 @@
     "short": "Building software by describing what you want in plain language and letting a model write the code.",
     "why": "It moves the hard part from typing to specifying and checking. If you can't tell whether what came back is right, speed just gets you to the wrong place sooner.",
     "hear_it": "\"I vibe-coded the whole thing in an afternoon.\"",
-    "related": ["prompt", "agent", "llm"]
+    "related": [
+      "prompt",
+      "agent",
+      "verification"
+    ]
   },
   {
     "term": "LLM",
     "slug": "llm",
     "category": "core",
-    "short": "Large language model — the thing doing the writing. It predicts what text should come next, very well, over and over.",
+    "short": "Large language model — the thing doing the writing, predicting what text should come next, very well, over and over.",
     "why": "Knowing it predicts rather than looks up explains almost every surprising thing it does, including the confident wrong answers.",
     "hear_it": "\"That's just how LLMs work.\"",
-    "related": ["model", "token", "hallucination"]
+    "related": [
+      "model",
+      "token",
+      "hallucination"
+    ]
   },
   {
     "term": "Model",
@@ -24,7 +32,10 @@
     "short": "A specific trained version you can talk to, with a name and a price — Opus, Sonnet, Haiku.",
     "why": "They differ in cost, speed and how much reasoning they'll do. Reaching for the biggest one every time is a way to spend money on nothing.",
     "hear_it": "\"Switch to a smaller model for this one.\"",
-    "related": ["llm", "token"]
+    "related": [
+      "llm",
+      "token"
+    ]
   },
   {
     "term": "Prompt",
@@ -33,7 +44,11 @@
     "short": "What you actually asked for — the text you send.",
     "why": "Almost every bad result is a prompt that left something unsaid. Vague in, vague out, and the model will not tell you what it guessed.",
     "hear_it": "\"Tighten the prompt and try again.\"",
-    "related": ["context-window", "system-prompt", "vibe-coding"]
+    "related": [
+      "context-window",
+      "system-prompt",
+      "vibe-coding"
+    ]
   },
   {
     "term": "Token",
@@ -42,7 +57,10 @@
     "short": "The unit a model reads and writes in — roughly three quarters of a word.",
     "why": "Everything you pay for and every limit you hit is counted in these, not in words or lines. It's the meter on the taxi.",
     "hear_it": "\"That blew the token budget.\"",
-    "related": ["context-window", "model"]
+    "related": [
+      "context-window",
+      "model"
+    ]
   },
   {
     "term": "Context window",
@@ -51,7 +69,10 @@
     "short": "Everything the model can see at once — your prompt, the files it read, the whole conversation so far.",
     "why": "When it fills up, earlier things fall out of view. Most \"it forgot what I said\" moments are this, not the model being stupid.",
     "hear_it": "\"We're running low on context.\"",
-    "related": ["token", "prompt"]
+    "related": [
+      "token",
+      "prompt"
+    ]
   },
   {
     "term": "System prompt",
@@ -60,7 +81,10 @@
     "short": "Standing instructions the model carries into every message, set before you start typing.",
     "why": "It is why the same question gets different answers in two different tools. When behaviour seems inexplicable, this is usually where the explanation lives.",
     "hear_it": "\"That must be coming from the system prompt.\"",
-    "related": ["prompt", "context-window"]
+    "related": [
+      "prompt",
+      "context-window"
+    ]
   },
   {
     "term": "Hallucination",
@@ -69,7 +93,10 @@
     "short": "A confident, fluent, completely made-up answer — a function that doesn't exist, a citation nobody wrote.",
     "why": "It arrives in exactly the same tone as a correct answer. There is no tell, which is the entire reason you verify instead of trusting.",
     "hear_it": "\"It hallucinated the whole API.\"",
-    "related": ["llm", "non-determinism"]
+    "related": [
+      "llm",
+      "non-determinism"
+    ]
   },
   {
     "term": "Agent",
@@ -78,7 +105,10 @@
     "short": "A model that can take actions — read files, run commands, search — not just produce text.",
     "why": "The moment it can act, mistakes stop being wrong paragraphs and start being deleted files. This is where permissions begin to matter.",
     "hear_it": "\"Let the agent handle it.\"",
-    "related": ["agentic-loop", "vibe-coding"]
+    "related": [
+      "agentic-loop",
+      "vibe-coding"
+    ]
   },
   {
     "term": "Agentic loop",
@@ -87,7 +117,9 @@
     "short": "Act, look at the result, decide what to do next, repeat — until the job is done or it gives up.",
     "why": "It explains why an agent can fix its own mistakes, and why it can also spend twenty minutes confidently going in a circle.",
     "hear_it": "\"It's stuck in a loop.\"",
-    "related": ["agent"]
+    "related": [
+      "agent"
+    ]
   },
   {
     "term": "Non-determinism",
@@ -96,6 +128,707 @@
     "short": "The same question can get a different answer twice.",
     "why": "It means \"it worked when I tried it\" is weak evidence, and a bug that vanishes on retry has not been fixed.",
     "hear_it": "\"It worked the first time, I swear.\"",
-    "related": ["llm", "hallucination"]
+    "related": [
+      "llm",
+      "hallucination"
+    ]
+  },
+  {
+    "term": "Session",
+    "slug": "session",
+    "category": "claude-code",
+    "short": "One continuous conversation with Claude Code in one terminal window, from the moment you start it to the moment you close it.",
+    "why": "Everything it knows about what you're doing lives in the session. Open a second window and that one starts from nothing — it has not seen the last two hours of work, and will happily contradict it.",
+    "hear_it": "\"Hang on, that was a different session — it doesn't know about any of that.\"",
+    "related": [
+      "context-window",
+      "compaction",
+      "memory"
+    ]
+  },
+  {
+    "term": "CLAUDE.md",
+    "slug": "claude-md",
+    "category": "claude-code",
+    "short": "A file in your project that Claude Code reads at the start of every session, holding the standing instructions you don't want to retype.",
+    "why": "Without it you re-explain your project's rules every single session, and half the time you forget one — so it picks the wrong framework, or writes files where you told it never to write files.",
+    "hear_it": "\"If you keep telling it that, just put it in the CLAUDE.md.\"",
+    "related": [
+      "memory",
+      "system-prompt",
+      "context-window"
+    ]
+  },
+  {
+    "term": "Memory",
+    "slug": "memory",
+    "category": "claude-code",
+    "short": "Notes Claude Code writes down for itself so something learned today is still there next week.",
+    "why": "A session forgets everything when it ends. If a hard-won fix never gets written down, you will debug the same thing again in a month and not recognise it.",
+    "hear_it": "\"Save that to memory, I never want to figure that out twice.\"",
+    "related": [
+      "claude-md",
+      "session",
+      "context-window"
+    ]
+  },
+  {
+    "term": "Plan mode",
+    "slug": "plan-mode",
+    "category": "claude-code",
+    "short": "A mode where Claude Code can read and investigate but not change anything, so it comes back with a proposal first.",
+    "why": "Skip it on anything non-trivial and you get twenty files edited from a misunderstanding of what you asked for. Reading the plan takes a minute; unpicking the edits takes an evening.",
+    "hear_it": "\"Put it in plan mode first, I want to see what it thinks it's doing.\"",
+    "related": [
+      "permission-mode",
+      "tool",
+      "agent"
+    ]
+  },
+  {
+    "term": "Permission mode",
+    "slug": "permission-mode",
+    "category": "claude-code",
+    "short": "The setting that decides how much Claude Code asks you before it does something — ask every time, ask for the risky things, or stop asking.",
+    "why": "Set too loose and it deletes or overwrites while you're looking away. Set too tight and you click approve so many times you stop reading the prompts, which is the same thing with extra steps.",
+    "hear_it": "\"Don't run it in the no-questions mode on a folder you care about.\"",
+    "related": [
+      "allowlist",
+      "plan-mode",
+      "settings-json"
+    ]
+  },
+  {
+    "term": "Allowlist",
+    "slug": "allowlist",
+    "category": "claude-code",
+    "short": "The list of specific commands and tools you've pre-approved, so Claude Code runs them without stopping to ask.",
+    "why": "The point is to stop the harmless stuff interrupting you so the one prompt that actually matters still gets read. Put something broad on it and you have quietly approved every future use of it too.",
+    "hear_it": "\"Just allowlist the test command, it's asking me every thirty seconds.\"",
+    "related": [
+      "permission-mode",
+      "settings-json",
+      "tool"
+    ]
+  },
+  {
+    "term": "Tool",
+    "slug": "tool",
+    "category": "claude-code",
+    "short": "Anything Claude Code can do besides produce text — read a file, edit a file, run a command, search the web.",
+    "why": "This is the whole difference between a chatbot and something that changes your computer. A tool call is a real action on your real machine, and \"it only suggested it\" stops being true.",
+    "hear_it": "\"It's not just talking, it's got tools — that command actually ran.\"",
+    "related": [
+      "agent",
+      "agentic-loop",
+      "permission-mode"
+    ]
+  },
+  {
+    "term": "Subagent",
+    "slug": "subagent",
+    "category": "claude-code",
+    "short": "A second Claude that your Claude sends off to do one chunk of work and report back.",
+    "why": "The subagent starts fresh — it did not hear your last hour of conversation, so anything you assumed is obvious has to be written into the instructions it gets, or it will confidently do the wrong thing.",
+    "hear_it": "\"Send a subagent to go read all that so it doesn't eat our context.\"",
+    "related": [
+      "agent",
+      "context-window",
+      "background-task"
+    ]
+  },
+  {
+    "term": "Skill",
+    "slug": "skill",
+    "category": "claude-code",
+    "short": "A saved set of instructions for one kind of job that Claude Code pulls in when the job comes up.",
+    "why": "It loads when the task looks like a match, which means it might not load when you expected it to. If the result ignores the process you carefully wrote down, check the skill was actually used before blaming the instructions.",
+    "hear_it": "\"There's a skill for that — you don't have to explain the whole process again.\"",
+    "related": [
+      "slash-command",
+      "claude-md",
+      "tool"
+    ]
+  },
+  {
+    "term": "Hook",
+    "slug": "hook",
+    "category": "claude-code",
+    "short": "A command your computer runs automatically at a fixed moment — before a tool runs, after an edit, when a session ends.",
+    "why": "Hooks fire whether or not Claude agrees with them, which is the point: asking nicely in a CLAUDE.md is a preference, a hook is a rule. A broken one blocks work every time and the reason is easy to miss.",
+    "hear_it": "\"That's a hook blocking it, not the model refusing.\"",
+    "related": [
+      "settings-json",
+      "permission-mode",
+      "tool"
+    ]
+  },
+  {
+    "term": "Slash command",
+    "slug": "slash-command",
+    "category": "claude-code",
+    "short": "A shortcut you type starting with a slash to trigger something already set up, like /review or /clear.",
+    "why": "Some of them do far more than they look like they do — /clear throws away the entire conversation. Worth knowing what one does before you type it mid-flow.",
+    "hear_it": "\"Just hit slash and see what's in the list.\"",
+    "related": [
+      "skill",
+      "session",
+      "settings-json"
+    ]
+  },
+  {
+    "term": "MCP server",
+    "slug": "mcp-server",
+    "category": "claude-code",
+    "short": "A connector that plugs an outside service — a database, your files, a website — into Claude Code as extra tools.",
+    "why": "Once connected it's connected from everywhere, not just the project you set it up in, and it's usually logged in as you. A request meant for a test database can reach the real one with nothing in the wording to warn you.",
+    "hear_it": "\"That's coming from an MCP server, not from Claude itself.\"",
+    "related": [
+      "tool",
+      "allowlist",
+      "permission-mode"
+    ]
+  },
+  {
+    "term": "settings.json",
+    "slug": "settings-json",
+    "category": "claude-code",
+    "short": "The configuration file where Claude Code keeps your permissions, hooks and preferences.",
+    "why": "There's more than one of these — one for your whole account, one per project — and the specific one wins. Editing the wrong file and seeing nothing change is the standard afternoon.",
+    "hear_it": "\"Which settings.json did you put that in, the project one or the global one?\"",
+    "related": [
+      "allowlist",
+      "hook",
+      "permission-mode"
+    ]
+  },
+  {
+    "term": "Compaction",
+    "slug": "compaction",
+    "category": "claude-code",
+    "short": "When the conversation gets too long, Claude Code summarises the older part of it to make room and carries on from the summary.",
+    "why": "A summary keeps the gist and drops the detail, so specific things you agreed early — an exact filename, a decision you overruled — can quietly stop being true. Quality dipping right after a long stretch usually means this.",
+    "hear_it": "\"It just compacted — re-tell it the important bit.\"",
+    "related": [
+      "context-window",
+      "session",
+      "memory"
+    ]
+  },
+  {
+    "term": "Checkpoint",
+    "slug": "checkpoint",
+    "category": "claude-code",
+    "short": "A saved snapshot of your files from earlier in the session, so you can rewind to how things were before a change.",
+    "why": "It's an undo for the session, not a backup of your project — it doesn't survive the session and it isn't a substitute for saving your work properly. People discover the difference at the worst moment.",
+    "hear_it": "\"Rewind to the checkpoint before it touched the config.\"",
+    "related": [
+      "session",
+      "worktree"
+    ]
+  },
+  {
+    "term": "Worktree",
+    "slug": "worktree",
+    "category": "claude-code",
+    "short": "A second copy of your project in its own folder, so work can happen there without disturbing the copy you're using.",
+    "why": "Two copies means two of everything — settings, installed packages, saved logins. A fix that works in one and not the other usually isn't a mystery, it's that you were standing in the wrong folder.",
+    "hear_it": "\"Let it do that in a worktree, I don't want it touching my files while I'm in them.\"",
+    "related": [
+      "checkpoint",
+      "subagent",
+      "background-task"
+    ]
+  },
+  {
+    "term": "Background task",
+    "slug": "background-task",
+    "category": "claude-code",
+    "short": "A command Claude Code starts and leaves running while you carry on with something else.",
+    "why": "Nobody watches it, so a server that died on line three keeps looking fine until you check the output. \"I started it\" is not \"it's working\".",
+    "hear_it": "\"Run the server in the background so we're not stuck waiting on it.\"",
+    "related": [
+      "tool",
+      "session",
+      "subagent"
+    ]
+  },
+  {
+    "term": "Artifact",
+    "slug": "artifact",
+    "category": "claude-code",
+    "short": "A web page Claude publishes for you at its own link, instead of leaving the result buried in the terminal.",
+    "why": "It's private until you hand out the link, and it's a live page rather than a file on your laptop — so it's for things other people need to open, and the sharing decision is yours to make deliberately.",
+    "hear_it": "\"Publish that as an artifact and send me the link.\"",
+    "related": [
+      "tool",
+      "session"
+    ]
+  },
+  {
+    "term": "Repo",
+    "slug": "repo",
+    "category": "engineering",
+    "short": "The folder that holds your project plus the full history of every change ever made to it.",
+    "why": "Work that isn't in a repo has no history — when something breaks you can't see what changed or go back to the version that worked.",
+    "hear_it": "\"Is that in the repo, or just on your laptop?\"",
+    "related": [
+      "commit",
+      "branch",
+      "deploy"
+    ]
+  },
+  {
+    "term": "Commit",
+    "slug": "commit",
+    "category": "engineering",
+    "short": "A saved checkpoint of your project, with a note saying what you changed.",
+    "why": "If you go hours without one, there's no point to return to when the AI rewrites six files and breaks the app. You either keep the mess or lose everything.",
+    "hear_it": "\"Commit before you let it touch that file.\"",
+    "related": [
+      "repo",
+      "branch",
+      "merge"
+    ]
+  },
+  {
+    "term": "Branch",
+    "slug": "branch",
+    "category": "engineering",
+    "short": "A separate line of work in the same project, so you can try something without disturbing the version that works.",
+    "why": "Without one, every experiment happens on top of the thing people are actually using. A half-finished idea and a working app end up in the same place.",
+    "hear_it": "\"Do that on a branch, not on main.\"",
+    "related": [
+      "commit",
+      "merge",
+      "pull-request"
+    ]
+  },
+  {
+    "term": "Pull request",
+    "slug": "pull-request",
+    "category": "engineering",
+    "short": "A proposal to fold one branch's changes into another, with a page where people can read and comment on them first.",
+    "why": "Skipping it means changes land with nobody having read them. The review is where somebody notices the AI quietly deleted a feature to make a test pass.",
+    "hear_it": "\"I opened a PR, can you look at it?\"",
+    "related": [
+      "branch",
+      "merge",
+      "repo"
+    ]
+  },
+  {
+    "term": "Merge",
+    "slug": "merge",
+    "category": "engineering",
+    "short": "Combining the changes from one branch into another.",
+    "why": "When two branches changed the same lines, this stops and asks you to pick — a conflict. Guess wrong and you silently delete someone's work, including your own from last week.",
+    "hear_it": "\"It merged clean, no conflicts.\"",
+    "related": [
+      "branch",
+      "pull-request",
+      "commit"
+    ]
+  },
+  {
+    "term": "CLI",
+    "slug": "cli",
+    "category": "engineering",
+    "short": "A program you drive by typing commands instead of clicking buttons.",
+    "why": "Most instructions you'll find online are written as commands, not as \"click here\". If you can't run one, half the internet's help is unusable to you.",
+    "hear_it": "\"There's no UI for that, it's CLI only.\"",
+    "related": [
+      "terminal",
+      "package-manager",
+      "build"
+    ]
+  },
+  {
+    "term": "Terminal",
+    "slug": "terminal",
+    "category": "engineering",
+    "short": "The black window where you type commands and read what the computer says back.",
+    "why": "The answer to most \"why isn't this working\" is already printed in there. People close it, then report that nothing happened.",
+    "hear_it": "\"What does the terminal say?\"",
+    "related": [
+      "cli",
+      "stack-trace",
+      "localhost"
+    ]
+  },
+  {
+    "term": "Package manager",
+    "slug": "package-manager",
+    "category": "engineering",
+    "short": "The tool that downloads and installs the other people's code your project needs.",
+    "why": "Its list of what to install is part of your project. Install something by hand outside it and your app works on your machine and nowhere else.",
+    "hear_it": "\"Just npm install, it'll sort itself out.\"",
+    "related": [
+      "dependency",
+      "cli",
+      "build"
+    ]
+  },
+  {
+    "term": "Dependency",
+    "slug": "dependency",
+    "category": "engineering",
+    "short": "Somebody else's code that your project needs in order to run.",
+    "why": "You inherit their bugs, their security holes, and their decision to change how things work. An app that ran fine in March can break in April because a dependency updated.",
+    "hear_it": "\"That's not our bug, it's coming from a dependency.\"",
+    "related": [
+      "package-manager",
+      "build",
+      "repo"
+    ]
+  },
+  {
+    "term": "Build",
+    "slug": "build",
+    "category": "engineering",
+    "short": "The step that turns the code you wrote into the files a browser or server can actually run.",
+    "why": "Code that looks fine in the editor can fail here, and this is the version that ships. \"It works when I'm editing\" and \"it builds\" are two different claims.",
+    "hear_it": "\"Don't push it, the build is red.\"",
+    "related": [
+      "deploy",
+      "dependency",
+      "test"
+    ]
+  },
+  {
+    "term": "Localhost",
+    "slug": "localhost",
+    "category": "engineering",
+    "short": "Your own computer, as seen by your own computer — the app running there is visible only to you.",
+    "why": "Sending someone a localhost link sends them to their own machine, where nothing is running. To them the site is simply broken, and they'll say so.",
+    "hear_it": "\"That link only works on your machine.\"",
+    "related": [
+      "port",
+      "deploy",
+      "terminal"
+    ]
+  },
+  {
+    "term": "Port",
+    "slug": "port",
+    "category": "engineering",
+    "short": "The numbered door on a machine that a running program listens at — the 3000 in localhost:3000.",
+    "why": "Two programs can't use the same one, so the second refuses to start with a message about the address being in use. And like localhost, the number means nothing to anyone else's computer.",
+    "hear_it": "\"Something's already on 3000.\"",
+    "related": [
+      "localhost",
+      "deploy",
+      "terminal"
+    ]
+  },
+  {
+    "term": "Deploy",
+    "slug": "deploy",
+    "category": "engineering",
+    "short": "Putting your app somewhere on the internet so other people can open it.",
+    "why": "Until you do this, nothing you built exists for anyone but you. And the first one usually surfaces every setting that only existed on your laptop.",
+    "hear_it": "\"It's deployed, here's the real link.\"",
+    "related": [
+      "build",
+      "localhost",
+      "environment-variable"
+    ]
+  },
+  {
+    "term": "Static vs dynamic",
+    "slug": "static-vs-dynamic",
+    "category": "engineering",
+    "short": "Whether the page was written out once in advance, or whether a server runs code to build it fresh each time someone asks.",
+    "why": "Static is cheap, fast and can't do anything personal; dynamic can show your name and your data but needs a server running and costs money per visit. Picking the wrong one means either a site that can't log anyone in, or a bill for a brochure.",
+    "hear_it": "\"Does that page need a server, or can it be static?\"",
+    "related": [
+      "deploy",
+      "api",
+      "database"
+    ]
+  },
+  {
+    "term": "API",
+    "slug": "api",
+    "category": "engineering",
+    "short": "A published way for one program to ask another program for something.",
+    "why": "It's a contract, and the other side owns it. When they change it, your app breaks without you touching a single line of your own code.",
+    "hear_it": "\"Their API changed and nobody told us.\"",
+    "related": [
+      "endpoint",
+      "json",
+      "secret"
+    ]
+  },
+  {
+    "term": "Endpoint",
+    "slug": "endpoint",
+    "category": "engineering",
+    "short": "One specific address within an API that does one specific thing.",
+    "why": "Typo the address and you don't get an error explaining yourself — you get a 404, which looks exactly like the service being down. People spend afternoons on a missing letter.",
+    "hear_it": "\"Which endpoint are you hitting?\"",
+    "related": [
+      "api",
+      "json",
+      "stack-trace"
+    ]
+  },
+  {
+    "term": "JSON",
+    "slug": "json",
+    "category": "engineering",
+    "short": "The standard text format programs use to pass structured data around — labels and values, in brackets.",
+    "why": "It is strictly picky: one trailing comma or one missing quote and the whole thing is rejected, usually with a message pointing at the wrong line.",
+    "hear_it": "\"It's returning JSON, just look at the raw response.\"",
+    "related": [
+      "api",
+      "endpoint",
+      "schema"
+    ]
+  },
+  {
+    "term": "Database",
+    "slug": "database",
+    "category": "engineering",
+    "short": "The place your app keeps information that has to survive being closed and reopened.",
+    "why": "Anything not stored here vanishes when the app restarts. People demo a working sign-up form, redeploy, and discover every account is gone.",
+    "hear_it": "\"Is that actually saved, or just on screen?\"",
+    "related": [
+      "schema",
+      "static-vs-dynamic",
+      "environment-variable"
+    ]
+  },
+  {
+    "term": "Schema",
+    "slug": "schema",
+    "category": "engineering",
+    "short": "The agreed shape of your data — which fields exist, what type each one is, which are required.",
+    "why": "Changing it after you have real data is the hard part: rename a field and every row still using the old name is suddenly invisible to your app.",
+    "hear_it": "\"That needs a schema change, it's not a quick one.\"",
+    "related": [
+      "database",
+      "json",
+      "api"
+    ]
+  },
+  {
+    "term": "Environment variable",
+    "slug": "environment-variable",
+    "category": "engineering",
+    "short": "A setting handed to your app from outside it, so the same code can behave differently on your laptop and in production.",
+    "why": "They don't travel with your code. The classic first deploy fails because the app is looking for a value that only ever existed on your machine.",
+    "hear_it": "\"Works locally — you probably didn't set the env vars on the server.\"",
+    "related": [
+      "secret",
+      "deploy",
+      "build"
+    ]
+  },
+  {
+    "term": "Secret",
+    "slug": "secret",
+    "category": "engineering",
+    "short": "A password, key or token that proves your app is allowed to use something — and that anyone holding it can use too.",
+    "why": "Paste one into your code and commit it to a public repo and it is scraped within minutes, by bots that watch for exactly that. Deleting it later doesn't help; the history still has it, and the bill is yours.",
+    "hear_it": "\"That key is in the repo. Rotate it now.\"",
+    "related": [
+      "environment-variable",
+      "repo",
+      "api"
+    ]
+  },
+  {
+    "term": "Stack trace",
+    "slug": "stack-trace",
+    "category": "engineering",
+    "short": "The wall of text an app prints when it crashes, listing what it was doing at each step leading up to the failure.",
+    "why": "The useful line is usually the first one and the first file that's actually yours — everything else is library noise. Pasting only \"it crashed\" to an AI throws away the one piece of evidence that identifies the bug.",
+    "hear_it": "\"Paste the whole trace, not just the last line.\"",
+    "related": [
+      "terminal",
+      "test",
+      "build"
+    ]
+  },
+  {
+    "term": "Lint",
+    "slug": "lint",
+    "category": "engineering",
+    "short": "A tool that reads your code and complains about problems and sloppiness before you ever run it.",
+    "why": "It catches the unused variable, the typo'd name, the thing you forgot to await. Turn it off because it's noisy and you hand those back to yourself as bugs at 2am.",
+    "hear_it": "\"Lint's screaming, but it still runs.\"",
+    "related": [
+      "build",
+      "test",
+      "stack-trace"
+    ]
+  },
+  {
+    "term": "Test",
+    "slug": "test",
+    "category": "engineering",
+    "short": "Code whose only job is to run your other code and check it did the right thing.",
+    "why": "Without them, the only way to know a change broke something is a user telling you. With AI writing large chunks fast, this is the difference between shipping and guessing.",
+    "hear_it": "\"Tests pass — but did you check what they actually assert?\"",
+    "related": [
+      "build",
+      "lint",
+      "commit"
+    ]
+  },
+  {
+    "term": "Spec",
+    "slug": "spec",
+    "category": "discipline",
+    "short": "A written description of what you're building, agreed before anyone builds it.",
+    "why": "The expensive mistakes are made before the first line of code, and they cost nothing to fix while they are still sentences.",
+    "hear_it": "\"That was never in the spec.\"",
+    "related": [
+      "scope-creep",
+      "mvp",
+      "plan-mode"
+    ]
+  },
+  {
+    "term": "ADR",
+    "slug": "adr",
+    "category": "discipline",
+    "short": "Architecture Decision Record — a short note saying what you decided, and why, dated.",
+    "why": "In six months nobody remembers why the database was chosen, and without the why, someone reverses it for a reason you already rejected.",
+    "hear_it": "\"Is there an ADR for that?\"",
+    "related": [
+      "spec",
+      "technical-debt"
+    ]
+  },
+  {
+    "term": "Scope creep",
+    "slug": "scope-creep",
+    "category": "discipline",
+    "short": "The job quietly growing while you work on it — one reasonable addition at a time.",
+    "why": "Every individual addition is defensible, which is exactly why it wins. You notice at the end, when nothing is finished.",
+    "hear_it": "\"While we're in there, could we also...\"",
+    "related": [
+      "spec",
+      "yagni",
+      "mvp"
+    ]
+  },
+  {
+    "term": "YAGNI",
+    "slug": "yagni",
+    "category": "discipline",
+    "short": "You Aren't Gonna Need It — don't build for a future you're guessing at.",
+    "why": "Speculative features are maintained forever and used never, and they make the code harder to change in the direction you actually end up needing.",
+    "hear_it": "\"YAGNI. Cut it.\"",
+    "related": [
+      "scope-creep",
+      "mvp",
+      "technical-debt"
+    ]
+  },
+  {
+    "term": "MVP",
+    "slug": "mvp",
+    "category": "discipline",
+    "short": "Minimum viable product — the smallest version that a real person can actually use.",
+    "why": "Viable is the word people skip. A version so minimal nobody can use it teaches you nothing, which was the entire point of shipping early.",
+    "hear_it": "\"Let's get an MVP out and see.\"",
+    "related": [
+      "yagni",
+      "scope-creep",
+      "deploy"
+    ]
+  },
+  {
+    "term": "Refactor",
+    "slug": "refactor",
+    "category": "discipline",
+    "short": "Changing how code is written without changing what it does.",
+    "why": "If behaviour changes too, it isn't a refactor — it's a rewrite wearing a safer-sounding word, and it needs the testing a rewrite needs.",
+    "hear_it": "\"That's a refactor, not a fix.\"",
+    "related": [
+      "regression",
+      "test",
+      "technical-debt"
+    ]
+  },
+  {
+    "term": "Regression",
+    "slug": "regression",
+    "category": "discipline",
+    "short": "Something that used to work and now doesn't, because of a change somewhere else.",
+    "why": "It's the cost of moving fast without tests: you fix one thing and break two, and you find out from a user rather than from your own machine.",
+    "hear_it": "\"That's a regression — it worked last week.\"",
+    "related": [
+      "test",
+      "refactor",
+      "rollback"
+    ]
+  },
+  {
+    "term": "Idempotency",
+    "slug": "idempotency",
+    "category": "discipline",
+    "short": "Running the same thing twice leaves you where running it once did.",
+    "why": "Without it, a retry after a timeout charges the card twice or imports every row again. Most data disasters are this sentence, ignored.",
+    "hear_it": "\"Is that import idempotent?\"",
+    "related": [
+      "verification",
+      "database"
+    ]
+  },
+  {
+    "term": "Verification",
+    "slug": "verification",
+    "category": "discipline",
+    "short": "Actually checking that the thing works, rather than checking that it finished.",
+    "why": "\"It ran\" and \"it worked\" are different claims. A green build is not a shipped page, and an agent saying \"done\" is not evidence of anything.",
+    "hear_it": "\"Did you open it, or did you just see the checkmark?\"",
+    "related": [
+      "test",
+      "hallucination",
+      "deploy"
+    ]
+  },
+  {
+    "term": "Blast radius",
+    "slug": "blast-radius",
+    "category": "discipline",
+    "short": "How much is affected if this goes wrong — one file, one user, or everybody.",
+    "why": "It's what tells you how carefully to move. Deleting a local file and deleting a production table deserve very different amounts of thought.",
+    "hear_it": "\"What's the blast radius if this is wrong?\"",
+    "related": [
+      "rollback",
+      "permission-mode",
+      "secret"
+    ]
+  },
+  {
+    "term": "Rollback",
+    "slug": "rollback",
+    "category": "discipline",
+    "short": "Putting the previous working version back after a bad change.",
+    "why": "Knowing you can undo something is what makes shipping fast reasonable. Not knowing whether you can is what makes 5pm deploys frightening.",
+    "hear_it": "\"Roll it back, we'll debug after.\"",
+    "related": [
+      "deploy",
+      "commit",
+      "regression"
+    ]
+  },
+  {
+    "term": "Technical debt",
+    "slug": "technical-debt",
+    "category": "discipline",
+    "short": "A shortcut you took on purpose, which will cost more the longer you leave it.",
+    "why": "Debt taken knowingly is a decision; debt taken accidentally is just mess. The word only helps if you write down which one it was.",
+    "hear_it": "\"That's debt, we'll pay it in Q3.\"",
+    "related": [
+      "refactor",
+      "adr",
+      "yagni"
+    ]
   }
 ]
