@@ -1,0 +1,14 @@
+{
+  "name": "vibe-coding",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Learn vibe coding with Claude Code — series roadmap, glossary, and the site that hosts them.",
+  "scripts": {
+    "test": "node --test tests/",
+    "build": "node scripts/build-glossary.mjs",
+    "check": "node scripts/build-glossary.mjs --check",
+    "serve": "node scripts/serve.mjs"
+  },
+  "engines": { "node": ">=24" }
+}
