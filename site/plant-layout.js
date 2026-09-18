@@ -18,11 +18,19 @@ import { allStops, bayOf, isSequential } from './plant-data.js';
 const ZONE_ORDER = ['control', 'machine', 'floor', 'qc'];
 const ZONE_SHARE = { control: 0.26, machine: 0.2, floor: 0.32, qc: 0.22 };
 
+// The plant spine. Quality control is deliberately absent: it is not a stage
+// the work passes through at the end, it is a set of gates over what is above
+// it, and each QC bay points up at the zone it governs instead.
 const ZONE_FLOWS = [
   ['control', 'machine', 'drives'],
+  ['control', 'floor', 'drives'],
   ['machine', 'floor', 'produces'],
-  ['floor', 'qc', 'must pass'],
 ];
+
+// A bay narrower than this cannot hold a title and a grid of machines. At
+// phone width the shop floor's five bays were 48px each, which is not a
+// diagram, it is a smear.
+const MIN_BAY_W = 132;
 
 export function layoutPlant(zones, glossary, box) {
   const bySlug = new Map(glossary.map((t) => [t.slug, t]));
@@ -30,9 +38,31 @@ export function layoutPlant(zones, glossary, box) {
   const gutter = Math.max(14, box.height * 0.035); // room for the spine arrows
   const railW = Math.min(74, Math.max(40, box.width * 0.07)); // left spine column
 
-  const usableH = box.height - pad * 2 - gutter * (ZONE_ORDER.length - 1);
   const left = pad + railW;
   const usableW = box.width - left - pad;
+
+  // How many bays fit across at this width? When they do not all fit, they wrap
+  // onto more rows and the ZONE gets taller - which makes the whole plant taller
+  // than the canvas, and panning reveals the rest. Squeezing is not an option.
+  const rowsFor = (zone) => {
+    const n = (zone.bays ?? []).length || 1;
+    const perRow = Math.max(1, Math.min(n, Math.floor(usableW / MIN_BAY_W)));
+    return { perRow, rows: Math.ceil(n / perRow) };
+  };
+
+  const rowPlan = new Map(zones.map((z) => [z.role, rowsFor(z)]));
+  const tallest = Math.max(...[...rowPlan.values()].map((r) => r.rows));
+
+  const shareWeights = {};
+  for (const role of ZONE_ORDER) {
+    const rows = rowPlan.get(role)?.rows ?? 1;
+    shareWeights[role] = (ZONE_SHARE[role] ?? 0.25) * (1 + (rows - 1) * 0.8);
+  }
+  const shareTotal = Object.values(shareWeights).reduce((a, b) => a + b, 0) || 1;
+
+  // Grow the drawing to fit its content rather than compressing the content.
+  const contentH = tallest > 1 ? box.height * (1 + (tallest - 1) * 0.55) : box.height;
+  const usableH = contentH - pad * 2 - gutter * (ZONE_ORDER.length - 1);
 
   const byRole = new Map(zones.map((z) => [z.role, z]));
   const laidZones = [];
@@ -44,7 +74,10 @@ export function layoutPlant(zones, glossary, box) {
   for (const role of ZONE_ORDER) {
     const zone = byRole.get(role);
     if (!zone) continue;
-    const h = usableH * (ZONE_SHARE[role] ?? 0.25);
+    const plan = rowPlan.get(role) ?? { perRow: 1, rows: 1 };
+    // A zone whose bays wrapped needs proportionally more height. Shares are
+    // weighted by row count and normalised, so they still fill the drawing.
+    const h = usableH * (shareWeights[role] / shareTotal);
 
     const laid = {
       key: zone.key,
@@ -60,7 +93,7 @@ export function layoutPlant(zones, glossary, box) {
     };
     laidZones.push(laid);
 
-    layoutBays(zone, laid, bays, stops, flows, bySlug);
+    layoutBays(zone, laid, bays, stops, flows, bySlug, plan.perRow);
     y += h + gutter;
   }
 
@@ -75,6 +108,21 @@ export function layoutPlant(zones, glossary, box) {
       label,
       from: { x: round(a.x - railW * 0.5), y: round(a.y + a.h) },
       to: { x: round(b.x - railW * 0.5), y: round(b.y) },
+    });
+  }
+
+  // QC gates: each bay points UP into the zone it governs. This is what makes
+  // quality control a layer over the plant rather than a stage at the end.
+  for (const bay of bays) {
+    if (!bay.gates) continue;
+    const target = laidZones.find((z) => z.role === bay.gates);
+    if (!target) continue;
+    flows.push({
+      kind: 'gate',
+      zone: bay.zone,
+      label: 'gates',
+      from: { x: round(bay.x + bay.w / 2), y: round(bay.y) },
+      to: { x: round(bay.x + bay.w / 2), y: round(target.y + target.h) },
     });
   }
 
@@ -94,10 +142,21 @@ export function layoutPlant(zones, glossary, box) {
     }
   }
 
-  return { zones: laidZones, bays, stops, flows, conduits, rail: { x: round(pad), w: round(railW) } };
+  const entry = bays.find((b) => b.entry) ?? null;
+
+  return {
+    zones: laidZones,
+    bays,
+    stops,
+    flows,
+    conduits,
+    entry,
+    content: { width: round(box.width), height: round(contentH) },
+    rail: { x: round(pad), w: round(railW) },
+  };
 }
 
-function layoutBays(zone, laid, bays, stops, flows, bySlug) {
+function layoutBays(zone, laid, bays, stops, flows, bySlug, perRow) {
   const list = zone.bays ?? [];
   if (list.length === 0) return;
 
@@ -108,36 +167,51 @@ function layoutBays(zone, laid, bays, stops, flows, bySlug) {
 
   // Width proportional to how much each bay has to hold, so a six-stop bay is
   // wider than a three-stop one instead of everything being forced equal.
-  const weights = list.map((b) => (b.stops ?? []).length);
-  const totalW = weights.reduce((a, b) => a + b, 0) || 1;
-  const available = laid.w - bayGap * (list.length - 1);
+  const cols = Math.max(1, Math.min(perRow ?? list.length, list.length));
+  const rowCount = Math.ceil(list.length / cols);
+  const rowH = (innerH - bayGap * (rowCount - 1)) / rowCount;
 
-  let x = laid.x;
   const placedBays = [];
   for (const [i, bay] of list.entries()) {
-    const w = (available * weights[i]) / totalW;
+    const row = Math.floor(i / cols);
+    const inRow = list.slice(row * cols, row * cols + cols);
+    const rowWeights = inRow.map((b) => (b.stops ?? []).length);
+    const rowTotal = rowWeights.reduce((a, b) => a + b, 0) || 1;
+    const available = laid.w - bayGap * (inRow.length - 1);
+
+    const col = i % cols;
+    let x = laid.x;
+    for (let c = 0; c < col; c++) x += (available * rowWeights[c]) / rowTotal + bayGap;
+
+    const w = (available * rowWeights[col]) / rowTotal;
+    const bayY = innerY + row * (rowH + bayGap);
     const laidBay = {
       zone: laid.key,
       title: bay.title,
       index: i,
       sequential: laid.sequential,
+      inFlow: bay.inFlow !== false,
+      entry: bay.entry === true,
+      gates: bay.gates ?? null,
       x: round(x),
-      y: round(innerY),
+      y: round(bayY),
       w: round(w),
-      h: round(innerH),
+      h: round(rowH),
     };
     bays.push(laidBay);
     placedBays.push(laidBay);
 
     placeStops(bay, laidBay, laid, stops, bySlug, zone);
-    x += w + bayGap;
   }
 
-  // Arrows between bays — ONLY where the zone declares a sequence.
+  // Arrows between bays - ONLY where the zone declares a sequence, and only
+  // between bays that are actually IN that sequence. "What it is" is an identity
+  // plate, not a stage; an arrow from it would claim definitions flow into inputs.
   if (laid.sequential) {
-    for (let i = 1; i < placedBays.length; i++) {
-      const a = placedBays[i - 1];
-      const b = placedBays[i];
+    const chain = placedBays.filter((b) => b.inFlow);
+    for (let i = 1; i < chain.length; i++) {
+      const a = chain[i - 1];
+      const b = chain[i];
       flows.push({
         kind: 'stage',
         zone: laid.key,

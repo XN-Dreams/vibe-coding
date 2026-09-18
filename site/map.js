@@ -80,6 +80,7 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     k = Math.min(1.45, Math.max(0.7, Math.sqrt((box.width * box.height) / (1200 * 800))));
     model = layoutPlant(plant, terms, box);
     view = { scale: 1, x: 0, y: 0 };
+    clampView();
     renderStops(rect);
     draw();
   }
@@ -90,9 +91,13 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
       linked.add(c.a.slug);
       linked.add(c.b.slug);
     }
+    // A roving tabstop. Sixty-five focusable buttons between the tab bar and the
+    // rest of the page is a trap: a keyboard user would press Tab 65 times to
+    // get past the plant. One button is tabbable, arrow keys move within.
     stops.innerHTML = model.stops
       .map(
-        (s) => `<button type="button" class="stop" data-slug="${esc(s.slug)}"
+        (s, i) => `<button type="button" class="stop" data-slug="${esc(s.slug)}" data-i="${i}"
+            tabindex="${i === 0 ? 0 : -1}"
             style="left:${(s.x / rect.width) * 100}%;top:${(s.y / rect.height) * 100}%"
             aria-label="${esc(s.term)} — ${esc(s.zoneName)}, ${esc(s.bay)}${
               linked.has(s.slug) ? ', connects to another zone' : ''
@@ -102,6 +107,18 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
   }
 
   /* ------------------------------------------------------------ drawing --- */
+
+  /** Keep the drawing on screen — panning must not lose the plant off an edge. */
+  function clampView() {
+    const rect = canvas.getBoundingClientRect();
+    if (!model.content || rect.width < 2) return;
+    const w = model.content.width * view.scale;
+    const h = model.content.height * view.scale;
+    const slackX = Math.max(0, w - rect.width);
+    const slackY = Math.max(0, h - rect.height);
+    view.x = Math.min(0, Math.max(-slackX, view.x));
+    view.y = Math.min(0, Math.max(-slackY, view.y));
+  }
 
   const P = (p) => ({ x: p.x * view.scale + view.x, y: p.y * view.scale + view.y });
   const S = (n) => n * k * Math.min(view.scale, 1.6);
@@ -140,6 +157,7 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
   }
 
   function draw() {
+    const zoneOf = new Map(model.zones.map((z) => [z.key, z]));
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
     ctx.fillStyle = GROUND;
@@ -188,7 +206,7 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
       const p = P(b);
       ctx.globalAlpha = dim ? 0.22 : 1;
 
-      const zone = model.zones.find((z) => z.key === b.zone);
+      const zone = zoneOf.get(b.zone);
       ctx.strokeStyle = `${ZONE_COLOUR[zone.role]}55`;
       ctx.lineWidth = S(1);
       roundRect(p.x, p.y, b.w * view.scale, b.h * view.scale, S(4));
@@ -204,10 +222,15 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     // 3. flow — stage arrows inside sequential zones, and the plant spine
     for (const f of model.flows) {
       if (f.kind === 'stage') {
-        const zone = model.zones.find((z) => z.key === f.zone);
+        const zone = zoneOf.get(f.zone);
         const dim = focusStop && focusStop.zone !== f.zone;
         ctx.globalAlpha = dim ? 0.2 : 0.9;
         arrow(f.from, f.to, ZONE_COLOUR[zone.role], S(2));
+      } else if (f.kind === 'gate') {
+        // Gates point UP into what they govern. Quality control is a layer over
+        // the plant, not a stage the work passes through at the end.
+        ctx.globalAlpha = 0.7;
+        arrow(f.from, f.to, ZONE_COLOUR.qc, S(1.6), true);
       } else {
         ctx.globalAlpha = 0.75;
         arrow(f.from, f.to, INK, S(2), true);
@@ -242,13 +265,29 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
 
+    // 4b. the way in. Without this a newcomer has nowhere to begin.
+    if (model.entry) {
+      const e = P(model.entry);
+      const w = model.entry.w * view.scale;
+      ctx.globalAlpha = focusStop ? 0.3 : 1;
+      ctx.fillStyle = INK;
+      roundRect(e.x - S(2), e.y - S(30), Math.min(w + S(4), S(140)), S(17), S(3));
+      ctx.fill();
+      ctx.font = `800 ${Math.round(S(9))}px "Big Shoulders Display", Archivo, sans-serif`;
+      ctx.fillStyle = GROUND;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('START HERE', e.x + S(6), e.y - S(21));
+      ctx.globalAlpha = 1;
+    }
+
     // 5. the machines themselves
     for (const s of model.stops) {
       const p = P(s);
       const online = isVisited(progress, s.slug);
       const active = s.slug === focus;
       const dim = focusStop && focusStop.zone !== s.zone && !active;
-      const zone = model.zones.find((z) => z.key === s.zone);
+      const zone = zoneOf.get(s.zone);
       const colour = ZONE_COLOUR[zone.role];
 
       ctx.globalAlpha = dim ? 0.2 : 1;
@@ -330,6 +369,7 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
       .join('');
 
     panel.innerHTML = `<article class="station">
+      <button type="button" class="station__close" data-close aria-label="Close">&times;</button>
       <p class="station__line" style="color:${ZONE_COLOUR[zone?.role ?? 'floor']}">${esc(zone?.zone ?? t.category)}</p>
       <p class="station__section">${esc(stop?.bay ?? '')}${
         zone && zone.flow === 'parallel' ? ' &middot; no fixed order' : ''
@@ -343,9 +383,23 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     </article>`;
     panel.hidden = false;
 
+    reveal(stop);
     renderHud();
     draw();
     onOpen?.(t);
+  }
+
+  /** Pan so an off-screen machine comes into view when it is opened. */
+  function reveal(stop) {
+    if (!stop) return;
+    const rect = canvas.getBoundingClientRect();
+    const p = P(stop);
+    const m = 60;
+    if (p.y < m) view.y += m - p.y;
+    else if (p.y > rect.height - m) view.y -= p.y - (rect.height - m);
+    if (p.x < m) view.x += m - p.x;
+    else if (p.x > rect.width - m) view.x -= p.x - (rect.width - m);
+    clampView();
   }
 
   /* ----------------------------------------------------------- wiring --- */
@@ -369,11 +423,13 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     view.x = cx - ((cx - view.x) / view.scale) * next;
     view.y = cy - ((cy - view.y) / view.scale) * next;
     view.scale = next;
+    clampView();
     draw();
   }
 
   const fit = () => {
     view = { scale: 1, x: 0, y: 0 };
+    clampView();
     draw();
   };
 
@@ -395,6 +451,7 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
       view.x += ev.clientX - pointer.x;
       view.y += ev.clientY - pointer.y;
       pointer = { x: ev.clientX, y: ev.clientY };
+      clampView();
       draw();
       return;
     }
@@ -463,9 +520,47 @@ export function createMap({ canvas, panel, hud, stops, terms, plant, onOpen }) {
     }
   });
 
+  // Arrow keys walk the plant; Home and End jump to its ends. The tabstop moves
+  // with the focus so returning to the group lands where you left it.
+  stops.addEventListener('keydown', (ev) => {
+    const btn = ev.target.closest('.stop');
+    if (!btn) return;
+    const all = [...stops.querySelectorAll('.stop')];
+    const i = Number(btn.dataset.i);
+    let next = null;
+
+    if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') next = all[Math.min(all.length - 1, i + 1)];
+    else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') next = all[Math.max(0, i - 1)];
+    else if (ev.key === 'Home') next = all[0];
+    else if (ev.key === 'End') next = all[all.length - 1];
+    else return;
+
+    ev.preventDefault();
+    if (!next) return;
+    btn.tabIndex = -1;
+    next.tabIndex = 0;
+    next.focus();
+  });
+
+  function close() {
+    panel.hidden = true;
+    selected = null;
+    draw();
+  }
+
   panel.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-close]')) {
+      close();
+      return;
+    }
     const el = ev.target.closest('[data-goto]');
     if (el) open(el.dataset.goto, el.dataset.from);
+  });
+
+  // Escape closes the panel and clears the selection, the way every other
+  // dismissible surface on the web behaves.
+  window.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && !panel.hidden) close();
   });
 
   hud.addEventListener('click', (ev) => {

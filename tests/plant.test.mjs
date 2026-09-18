@@ -93,3 +93,41 @@ test('reports every problem, not just the first', () => {
   const bad = [{ key: 'core', zone: 'z', role: 'machine', flow: 'sequence', tagline: 't', bays: [{ title: 'A', stops: ['g1', 'g2'] }] }];
   assert.ok(validatePlant(bad, tinyGlossary).errors.length >= 3);
 });
+
+// --- narrative honesty (the challenge pass) ---
+
+// The contradiction this closes: QC's own tagline said "not a stage at the end"
+// while it was drawn as a plate at the bottom with a MUST PASS arrow into it.
+test('every quality-control bay names the zone it gates', () => {
+  const qc = plant.find((z) => z.role === 'qc');
+  for (const bay of qc.bays) {
+    assert.ok(bay.gates, `QC bay "${bay.title}" gates nothing — it would render as a terminal stage`);
+    assert.ok(
+      plant.some((z) => z.role === bay.gates),
+      `QC bay "${bay.title}" gates "${bay.gates}", which is not a zone`
+    );
+  }
+});
+
+test('quality control never gates itself', () => {
+  const qc = plant.find((z) => z.role === 'qc');
+  for (const bay of qc.bays) assert.notEqual(bay.gates, 'qc');
+});
+
+// A definition is not a stage of a process. "What it is" had a flow arrow into
+// "What goes in", which claimed that definitions flow into inputs.
+test('a bay marked inFlow:false is excluded from its sequence', () => {
+  const machine = plant.find((z) => z.role === 'machine');
+  assert.equal(machine.bays[0].inFlow, false, 'the identity bay must not sit in the flow');
+  assert.ok(machine.bays.slice(1).every((b) => b.inFlow !== false), 'the actual stages must stay in flow');
+});
+
+test('exactly one bay in the whole plant is the entry point', () => {
+  const entries = plant.flatMap((z) => z.bays.filter((b) => b.entry).map((b) => `${z.role}/${b.title}`));
+  assert.equal(entries.length, 1, `expected one entry point, found ${entries.length}: ${entries.join(', ')}`);
+});
+
+test('the entry point sits in a zone a newcomer can actually start from', () => {
+  const zone = plant.find((z) => z.bays.some((b) => b.entry));
+  assert.equal(zone.role, 'machine', 'a beginner starts by learning what the thing is');
+});
