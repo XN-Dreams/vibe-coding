@@ -1,0 +1,101 @@
+[
+  {
+    "term": "Vibe coding",
+    "slug": "vibe-coding",
+    "category": "core",
+    "short": "Building software by describing what you want in plain language and letting a model write the code.",
+    "why": "It moves the hard part from typing to specifying and checking. If you can't tell whether what came back is right, speed just gets you to the wrong place sooner.",
+    "hear_it": "\"I vibe-coded the whole thing in an afternoon.\"",
+    "related": ["prompt", "agent", "llm"]
+  },
+  {
+    "term": "LLM",
+    "slug": "llm",
+    "category": "core",
+    "short": "Large language model — the thing doing the writing. It predicts what text should come next, very well, over and over.",
+    "why": "Knowing it predicts rather than looks up explains almost every surprising thing it does, including the confident wrong answers.",
+    "hear_it": "\"That's just how LLMs work.\"",
+    "related": ["model", "token", "hallucination"]
+  },
+  {
+    "term": "Model",
+    "slug": "model",
+    "category": "core",
+    "short": "A specific trained version you can talk to, with a name and a price — Opus, Sonnet, Haiku.",
+    "why": "They differ in cost, speed and how much reasoning they'll do. Reaching for the biggest one every time is a way to spend money on nothing.",
+    "hear_it": "\"Switch to a smaller model for this one.\"",
+    "related": ["llm", "token"]
+  },
+  {
+    "term": "Prompt",
+    "slug": "prompt",
+    "category": "core",
+    "short": "What you actually asked for — the text you send.",
+    "why": "Almost every bad result is a prompt that left something unsaid. Vague in, vague out, and the model will not tell you what it guessed.",
+    "hear_it": "\"Tighten the prompt and try again.\"",
+    "related": ["context-window", "system-prompt", "vibe-coding"]
+  },
+  {
+    "term": "Token",
+    "slug": "token",
+    "category": "core",
+    "short": "The unit a model reads and writes in — roughly three quarters of a word.",
+    "why": "Everything you pay for and every limit you hit is counted in these, not in words or lines. It's the meter on the taxi.",
+    "hear_it": "\"That blew the token budget.\"",
+    "related": ["context-window", "model"]
+  },
+  {
+    "term": "Context window",
+    "slug": "context-window",
+    "category": "core",
+    "short": "Everything the model can see at once — your prompt, the files it read, the whole conversation so far.",
+    "why": "When it fills up, earlier things fall out of view. Most \"it forgot what I said\" moments are this, not the model being stupid.",
+    "hear_it": "\"We're running low on context.\"",
+    "related": ["token", "prompt"]
+  },
+  {
+    "term": "System prompt",
+    "slug": "system-prompt",
+    "category": "core",
+    "short": "Standing instructions the model carries into every message, set before you start typing.",
+    "why": "It is why the same question gets different answers in two different tools. When behaviour seems inexplicable, this is usually where the explanation lives.",
+    "hear_it": "\"That must be coming from the system prompt.\"",
+    "related": ["prompt", "context-window"]
+  },
+  {
+    "term": "Hallucination",
+    "slug": "hallucination",
+    "category": "core",
+    "short": "A confident, fluent, completely made-up answer — a function that doesn't exist, a citation nobody wrote.",
+    "why": "It arrives in exactly the same tone as a correct answer. There is no tell, which is the entire reason you verify instead of trusting.",
+    "hear_it": "\"It hallucinated the whole API.\"",
+    "related": ["llm", "non-determinism"]
+  },
+  {
+    "term": "Agent",
+    "slug": "agent",
+    "category": "core",
+    "short": "A model that can take actions — read files, run commands, search — not just produce text.",
+    "why": "The moment it can act, mistakes stop being wrong paragraphs and start being deleted files. This is where permissions begin to matter.",
+    "hear_it": "\"Let the agent handle it.\"",
+    "related": ["agentic-loop", "vibe-coding"]
+  },
+  {
+    "term": "Agentic loop",
+    "slug": "agentic-loop",
+    "category": "core",
+    "short": "Act, look at the result, decide what to do next, repeat — until the job is done or it gives up.",
+    "why": "It explains why an agent can fix its own mistakes, and why it can also spend twenty minutes confidently going in a circle.",
+    "hear_it": "\"It's stuck in a loop.\"",
+    "related": ["agent"]
+  },
+  {
+    "term": "Non-determinism",
+    "slug": "non-determinism",
+    "category": "core",
+    "short": "The same question can get a different answer twice.",
+    "why": "It means \"it worked when I tried it\" is weak evidence, and a bug that vanishes on retry has not been fixed.",
+    "hear_it": "\"It worked the first time, I swear.\"",
+    "related": ["llm", "hallucination"]
+  }
+]
