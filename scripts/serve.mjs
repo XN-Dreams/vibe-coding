@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, extname, join } from 'node:path';
+import { resolveSitePath } from './lib/safe-path.mjs';
 
 const siteRoot = join(dirname(fileURLToPath(import.meta.url)), '..', 'site');
 const PORT = 8080;
@@ -14,15 +15,11 @@ const TYPES = {
 };
 
 createServer(async (req, res) => {
-  const requested = decodeURIComponent(req.url.split('?')[0]);
+  // Every containment decision lives in resolveSitePath, which is unit-tested.
+  // null means the request pointed outside site/ — see tests/safe-path.test.mjs.
+  const path = resolveSitePath(siteRoot, req.url);
 
-  // join() collapses any ".." the caller sent, so the resolved path either
-  // still sits inside site/ or it does not. That single check is the guard:
-  // without it, a request for /../../../../etc/passwd walks straight out of
-  // the directory we meant to serve.
-  const path = join(siteRoot, requested === '/' ? 'index.html' : requested);
-
-  if (!path.startsWith(siteRoot)) {
+  if (path === null) {
     res.writeHead(403).end('Forbidden');
     return;
   }
