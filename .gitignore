@@ -8,3 +8,8 @@ Thumbs.db
 
 # extract-design-system working cache
 .extract-design-system/
+
+# Operator session handoffs. Deliberately NOT committed: they reference paths
+# outside this repo, and CLAUDE.md seals this public repo from everything else
+# on the machine. The public record of a session is episodes/ep-NN.md.
+docs/notes/
