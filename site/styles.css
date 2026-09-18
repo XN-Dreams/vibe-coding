@@ -1,0 +1,87 @@
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --text: #1c1a17;
+  --muted: #5f5952;
+  --line: #e4dfd8;
+  --accent: #7a4f28;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16150f;
+    --surface: #1f1d17;
+    --text: #f0ece4;
+    --muted: #a8a096;
+    --line: #322e26;
+    --accent: #d9a566;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 2rem 1rem 4rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header, main, footer { max-width: 68ch; margin-inline: auto; }
+
+h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); margin: 0 0 .25rem; letter-spacing: -.02em; }
+.sub { color: var(--muted); margin: 0 0 2rem; }
+
+.search { display: block; font-weight: 600; margin-bottom: .5rem; }
+
+#q {
+  width: 100%;
+  padding: .7rem .9rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+}
+#q:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.count { color: var(--muted); font-size: .875rem; margin: .5rem 0 2rem; }
+
+h2 {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: .5rem;
+  margin-top: 3rem;
+}
+
+.term {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  padding: 1.1rem 1.25rem;
+  margin: 1rem 0;
+}
+.term h3 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.short { margin: 0 0 .75rem; }
+.why, .hear { margin: 0 0 .5rem; font-size: .925rem; color: var(--muted); }
+.why strong, .hear strong { color: var(--accent); font-weight: 600; }
+
+.empty { color: var(--muted); padding: 2rem 0; }
+
+footer { margin-top: 4rem; color: var(--muted); font-size: .875rem; }
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  background: var(--accent);
+  color: var(--bg);
+  padding: .6rem 1rem;
+  border-radius: .4rem;
+}
+.skip:focus { left: 1rem; top: 1rem; }
