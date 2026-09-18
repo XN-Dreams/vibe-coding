@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Vibe Coding Glossary</title>
-  <meta name="description" content="The schedule and the glossary for the Vibe Coding with Claude Code live series. Every term in plain language.">
+  <meta name="description" content="The schedule and the glossary for the Vibe Coding with Claude Code live series. 65 terms as a network you can explore.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@500;700;800&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,13 +18,30 @@
     <p class="sub">Built live, from an empty folder, with nothing hidden.</p>
 
     <nav class="tabs" aria-label="Sections">
+      <a class="tab" id="tab-map" href="#map" role="button">The network</a>
       <a class="tab" id="tab-schedule" href="#schedule" role="button">Schedule</a>
-      <a class="tab" id="tab-glossary" href="#glossary" role="button">Glossary</a>
+      <a class="tab" id="tab-glossary" href="#glossary" role="button">All terms</a>
     </nav>
   </header>
 
   <main id="panel">
-    <section id="view-schedule" class="view" aria-labelledby="tab-schedule">
+    <section id="view-map" class="view view--map" aria-labelledby="tab-map">
+      <div class="mapwrap">
+        <div class="mapstage">
+          <canvas id="netcanvas" role="img"
+            aria-label="The glossary drawn as a transit network. Every term is a station and every cross-reference a section of track. A list of all stations follows."></canvas>
+          <div id="netstops" class="stops"></div>
+        </div>
+        <aside class="mapside">
+          <div id="nethud" class="hud"></div>
+          <div id="netpanel" class="station-panel" hidden></div>
+          <p class="maphint">Click a station to open it. Drag to pan, scroll to zoom.
+            Follow an <b>Onward from here</b> link to trace a route.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-schedule" class="view" aria-labelledby="tab-schedule" hidden>
       <div id="upnext" class="upnext"></div>
       <p class="tzline" id="tzline"></p>
       <div id="episodes"></div>

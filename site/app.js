@@ -3,6 +3,7 @@ import { CATEGORY_TITLES } from './categories.js';
 import { deriveStates, STATE_LABEL, blockTimes } from './schedule-state.js';
 import { formatCountdown, formatLocal, msUntil, viewerTimeZone } from './countdown.js';
 import { esc, safeUrl } from './escape.js';
+import { createMap } from './map.js';
 
 const [terms, schedule] = await Promise.all([
   fetch('glossary.json').then((r) => r.json()),
@@ -11,10 +12,10 @@ const [terms, schedule] = await Promise.all([
 
 /* ---------------------------------------------------------------- tabs --- */
 
-const VIEWS = ['schedule', 'glossary'];
+const VIEWS = ['map', 'schedule', 'glossary'];
 
 function showView(name) {
-  const view = VIEWS.includes(name) ? name : 'schedule';
+  const view = VIEWS.includes(name) ? name : 'map';
   for (const v of VIEWS) {
     document.getElementById(`view-${v}`).hidden = v !== view;
     document.getElementById(`tab-${v}`).setAttribute('aria-current', v === view ? 'page' : 'false');
@@ -23,8 +24,12 @@ function showView(name) {
 
 // The hash IS the route, so every tab is linkable and the back button works.
 // That is the whole feature: "#schedule" can be pasted into stream chat.
-window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
-showView(location.hash.slice(1));
+window.addEventListener('hashchange', () => {
+  showView(location.hash.slice(1));
+  // The canvas has no size while its tab is hidden, so it must be laid out
+  // again the first time it becomes visible or it renders into a zero box.
+  if (location.hash.slice(1) === 'map') network?.refresh();
+});
 
 /* ------------------------------------------------------------ schedule --- */
 
@@ -155,3 +160,18 @@ function renderGlossary(list) {
 
 input.addEventListener('input', () => renderGlossary(filterTerms(terms, input.value)));
 renderGlossary(terms);
+
+
+/* ------------------------------------------------------------- network --- */
+
+const network = createMap({
+  canvas: document.getElementById('netcanvas'),
+  panel: document.getElementById('netpanel'),
+  hud: document.getElementById('nethud'),
+  stops: document.getElementById('netstops'),
+  terms,
+});
+
+// Routing runs last: the map must exist before a #map hash can lay it out.
+showView(location.hash.slice(1));
+if (location.hash.slice(1) !== 'map') network.refresh();
