@@ -1,0 +1,79 @@
+[
+  {
+    "episode": 1,
+    "slug": "zero-to-deployed",
+    "title": "Zero to deployed",
+    "starts_at": "2026-09-18T16:00:00Z",
+    "duration_hours": 8,
+    "summary": "From an empty folder to a site on the internet, in one sitting. An idea becomes a plan, becomes files, becomes something other people can open.",
+    "covers": [
+      "Planning before typing",
+      "Writing the glossary",
+      "Test-first, with a guard we break on purpose",
+      "Git, CI and a real deploy"
+    ],
+    "links": {
+      "recap": "https://github.com/XN-Dreams/vibe-coding/blob/main/episodes/ep-01.md",
+      "repo": "https://github.com/XN-Dreams/vibe-coding"
+    }
+  },
+  {
+    "episode": 2,
+    "slug": "the-first-real-fork",
+    "title": "The site grows up, and the first real fork",
+    "starts_at": "2026-09-21T16:00:00Z",
+    "duration_hours": 8,
+    "summary": "Outgrow the starting stack on purpose, then decide what to do about it with the requirement actually in hand. Also: we pick what we build for the rest of the series.",
+    "covers": [
+      "Search and permalinks",
+      "A way for you to submit a term",
+      "When does a framework earn its place?",
+      "Choosing the episode 3-5 product"
+    ],
+    "links": {}
+  },
+  {
+    "episode": 3,
+    "slug": "idea-to-spec-to-scaffold",
+    "title": "Idea to spec to scaffold",
+    "starts_at": "2026-09-28T16:00:00Z",
+    "duration_hours": 8,
+    "summary": "Start the second product from nothing and resist the urge to type. The episode where planning earns its keep.",
+    "covers": [
+      "Brainstorming into a written spec",
+      "Turning a spec into a plan",
+      "Scaffolding without scope creep"
+    ],
+    "links": {}
+  },
+  {
+    "episode": 4,
+    "slug": "core-features-and-real-data",
+    "title": "Core features and real data",
+    "starts_at": "2026-10-05T16:00:00Z",
+    "duration_hours": 8,
+    "summary": "Make it hold state. The episode where the product stops being a demo.",
+    "covers": [
+      "Designing a schema",
+      "Persistence and seed data",
+      "Secrets, and where they must never go",
+      "Running it twice without breaking it"
+    ],
+    "links": {}
+  },
+  {
+    "episode": 5,
+    "slug": "auth-deploy-harden",
+    "title": "Auth, deploy, harden",
+    "starts_at": "2026-10-12T16:00:00Z",
+    "duration_hours": 8,
+    "summary": "Let other people in without letting them break it, then ship it.",
+    "covers": [
+      "Accounts and protected writes",
+      "CI that actually gates the deploy",
+      "Rollback, and knowing you can",
+      "\"It ran\" versus \"it worked\""
+    ],
+    "links": {}
+  }
+]

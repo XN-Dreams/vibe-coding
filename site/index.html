@@ -4,22 +4,41 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Vibe Coding Glossary</title>
-  <meta name="description" content="Every term the Vibe Coding with Claude Code series uses, in plain language.">
+  <meta name="description" content="The schedule and the glossary for the Vibe Coding with Claude Code live series. Every term in plain language.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#results">Skip to the glossary</a>
+  <a class="skip" href="#panel">Skip to the content</a>
+
   <header>
-    <h1>Vibe Coding Glossary</h1>
-    <p class="sub">Every term the series uses, in plain language. Built live, on stream.</p>
-    <label class="search" for="q">Search the glossary</label>
-    <input id="q" type="search" autocomplete="off" placeholder="Try &ldquo;context&rdquo; or &ldquo;idempotent&rdquo;">
-    <p id="count" class="count" aria-live="polite"></p>
+    <h1>Vibe Coding with Claude Code</h1>
+    <p class="sub">Built live, from an empty folder, with nothing hidden.</p>
+
+    <nav class="tabs" aria-label="Sections">
+      <a class="tab" id="tab-schedule" href="#schedule" role="button">Schedule</a>
+      <a class="tab" id="tab-glossary" href="#glossary" role="button">Glossary</a>
+    </nav>
   </header>
-  <main id="results"></main>
+
+  <main id="panel">
+    <section id="view-schedule" class="view" aria-labelledby="tab-schedule">
+      <div id="upnext" class="upnext"></div>
+      <p class="tzline" id="tzline"></p>
+      <div id="episodes"></div>
+    </section>
+
+    <section id="view-glossary" class="view" aria-labelledby="tab-glossary" hidden>
+      <label class="search" for="q">Search the glossary</label>
+      <input id="q" type="search" autocomplete="off" placeholder="Try &ldquo;context&rdquo; or &ldquo;idempotent&rdquo;">
+      <p id="count" class="count" aria-live="polite"></p>
+      <div id="results"></div>
+    </section>
+  </main>
+
   <footer>
-    <p>Source on GitHub. Nothing here is hidden.</p>
+    <p><a href="https://github.com/XN-Dreams/vibe-coding">Source on GitHub</a>. Nothing here is hidden.</p>
   </footer>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
