@@ -72,21 +72,53 @@ left alone.
 
 ## 3. Twitch is the destination, not the front door
 
+> **Corrected 2026-09-18.** The first version of this section recommended moving
+> to Science & Technology, on the strength of the decline figure below. That was
+> a bad inference and it is withdrawn — see the decision at the end.
+>
+> It also assumed the series was already in a development category. It was not:
+> episode 1 streamed under **IRL**, which is the one category the same source
+> says explicitly to avoid.
+
 The "Software and Game Development" category is down **31.4% year-on-year** in both
 average viewers and hours watched, with active streamers down 15.2%. It now ranks
 150th by average viewers. **[confirmed]**
 <https://sullygnome.com/game/software_and_game_development/365>
 
-Separately, 80% of desktop viewers never scroll past the first three rows of a
-category, and category position is driven purely by concurrent viewers — so a
-channel starting from zero is not findable there. **[contested]** — the source
-supports the 80% figure but not the precise positional maths originally claimed.
+80% of desktop viewers never scroll past the first three rows of a category, and
+position is driven purely by concurrent viewers — so a channel starting from zero
+is not findable there. **[contested]** — the source supports the 80% figure but
+not the precise positional maths originally claimed.
+
+Current category sizes, same source for both, so they are comparable:
+
+| Category | Viewers | Channels |
+|---|---|---|
+| Software and Game Development | 1,000–3,000 | 100–200 |
+| Science & Technology | 500–2,000 | 50–150 |
+| Just Chatting / IRL | the largest on Twitch | the most saturated on Twitch |
+
+<https://streamlint.com/blog/pick-right-twitch-category-discoverability>
+
+On Just Chatting / IRL that source is unambiguous: *"Avoid 'Just Chatting' unless
+you have 20+ average viewers already. It's the most saturated category on Twitch."*
+At 10 average viewers you are on page 12.
+
+**Why the original recommendation was wrong.** "This category is shrinking"
+became "therefore leave it", and that does not follow. Software and Game
+Development still carries more viewers than Science & Technology at a comparable
+viewer-to-channel ratio, and it matches what the stream actually is. Decline
+matters for long-run planning; intent-match decides which category you belong in
+today.
 
 **Decisions:**
-- Use **Science & Technology** as the primary Twitch category, not Software and
-  Game Development.
-- Do not expect Twitch to *find* an audience. It is where an audience acquired
-  elsewhere comes to watch.
+- Primary category is **Software and Game Development**. Not IRL, which has
+  maximum competition and zero intent-match — a viewer browsing IRL is not
+  looking for someone building software.
+- **Not** Science & Technology. It is smaller on both counts and no better matched.
+- Do not expect Twitch to *find* an audience in any category. It is where an
+  audience acquired elsewhere comes to watch. This fix stops the category
+  actively working against the stream; it is not a growth strategy.
 
 ## 4. Multistream to YouTube and Twitch
 
